@@ -55,10 +55,23 @@ class SpatialMemorySystem(nn.Module):
         wx, wy, wz = self.window_size
         return self.memory_field[:, x : x + wx, y : y + wy, z : z + wz].unsqueeze(0)
 
-    def write_patch(self, position: torch.Tensor, patch: torch.Tensor) -> None:
+    def mutable_inner_slices(self):
+        """Slices for the cells a local node may rewrite inside its boundary wall."""
+        if any(size <= 2 for size in self.window_size):
+            return tuple(slice(0, size) for size in self.window_size)
+        return tuple(slice(1, size - 1) for size in self.window_size)
+
+    def write_patch(self, position: torch.Tensor, patch: torch.Tensor, preserve_boundary: bool = True) -> None:
         x, y, z = [int(v) for v in position.tolist()]
         wx, wy, wz = self.window_size
-        self.memory_field.data[:, x : x + wx, y : y + wy, z : z + wz] = patch.squeeze(0)
+        patch_body = patch.squeeze(0)
+        with torch.no_grad():
+            target = self.memory_field[:, x : x + wx, y : y + wy, z : z + wz]
+            if preserve_boundary:
+                ix, iy, iz = self.mutable_inner_slices()
+                target[:, ix, iy, iz].copy_(patch_body[:, ix, iy, iz])
+            else:
+                target.copy_(patch_body)
 
     def next_position(self, position: torch.Tensor, move_logits: torch.Tensor) -> torch.Tensor:
         if self.movement_mode == "static":
