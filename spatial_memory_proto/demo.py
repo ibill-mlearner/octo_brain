@@ -1,17 +1,18 @@
 import torch
 
 from spatial_memory_system import SpatialMemorySystem
-from node_roles import NodeConfig, SensorNode, ReflexNode, DecisionNode, ActorNode
+from node_roles import NodeRoleServer
 
 
 def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     core = SpatialMemorySystem(channels=8, field_size=(100, 100, 100), window_size=(10, 10, 10), movement_mode="learned").to(device)
 
-    sensor = SensorNode(NodeConfig(node_id="sensor-1", role="sensor"), core)
-    reflex = ReflexNode(NodeConfig(node_id="reflex-1", role="reflex"), core)
-    decision = DecisionNode(NodeConfig(node_id="decision-1", role="decision"), core)
-    actor = ActorNode(NodeConfig(node_id="actor-1", role="actor"), core)
+    roles = NodeRoleServer(core)
+    sensor = roles.connect("sensor", node_id="sensor-1")
+    reflex = roles.connect("reflex", node_id="reflex-1")
+    decision = roles.connect("decision", node_id="decision-1")
+    actor = roles.connect("actor", node_id="actor-1")
 
     for step in range(500):
         sensor.sync_from(actor)
