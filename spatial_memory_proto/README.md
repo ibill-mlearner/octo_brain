@@ -104,8 +104,10 @@ See `docs/viability_logging_plan.md` for the schema, first queries, and what we 
 
 ## Run tests
 
-From the repository root:
+From the repository root, run the single test runner file:
 
 ```bash
-python -m unittest discover -s tests
+python run_tests.py
 ```
+
+That file discovers and runs every `test_*.py` file inside the `tests/` folder.
