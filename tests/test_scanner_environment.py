@@ -2,9 +2,9 @@ import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spatial_memory_proto"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scanner_environment import ScannerConfig, ScannerEnvironment
+from sensors.interfaces import ScannerConfig, ScannerEnvironment
 
 
 class ScannerEnvironmentTest(unittest.TestCase):
