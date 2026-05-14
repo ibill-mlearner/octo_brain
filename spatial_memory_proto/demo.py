@@ -14,15 +14,15 @@ def main():
     actor = ActorNode(NodeConfig(node_id="actor-1", role="actor"), core)
 
     for step in range(500):
-        sensor.position = actor.position
-        sensor.active_state = actor.active_state
+        sensor.sync_from(actor)
+        decision.sync_from(actor)
         patch, pred = sensor.sense_and_predict()
         error = float((pred - patch).pow(2).mean().detach().item())
 
         trigger, urgency = reflex.check(error)
         action = decision.decide(error)
         if trigger:
-            action = -actor.velocity if torch.norm(actor.velocity) > 0 else torch.zeros(3)
+            action = -actor.velocity if torch.norm(actor.velocity) > 0 else torch.zeros(3, device=actor.position.device)
 
         feedback = actor.act(action)
         actor.active_state, _, _ = core.step(actor.active_state, actor.position, write_back=True)
