@@ -22,7 +22,7 @@ import time
 from dataclasses import dataclass
 from typing import Iterable, List
 
-from tokenizer import SpatialTokenizer
+from .tokenizer import SpatialTokenizer
 
 
 @dataclass(frozen=True)
@@ -81,17 +81,24 @@ $readings | ConvertTo-Json -Depth 3
 
 
 def windows_readings() -> List[SensorReading]:
-    result = subprocess.run(
-        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", WINDOWS_COUNTER_SCRIPT],
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=15,
-    )
+    try:
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", WINDOWS_COUNTER_SCRIPT],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return []
+
     if result.returncode != 0 or not result.stdout.strip():
         return []
 
-    payload = json.loads(result.stdout)
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return []
     if isinstance(payload, dict):
         payload = [payload]
 
