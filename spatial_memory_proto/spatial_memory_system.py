@@ -47,8 +47,13 @@ class SpatialMemorySystem(nn.Module):
         self.update_net = LocalUpdateNet(channels)
 
     def _clamp_position(self, position: torch.Tensor) -> torch.Tensor:
-        max_xyz = torch.tensor([self.field_size[i] - self.window_size[i] for i in range(3)], device=position.device)
-        return torch.clamp(position, min=0, max=max_xyz)
+        max_xyz = torch.tensor(
+            [self.field_size[i] - self.window_size[i] for i in range(3)],
+            device=position.device,
+            dtype=position.dtype,
+        )
+        min_xyz = torch.zeros_like(max_xyz)
+        return torch.minimum(torch.maximum(position, min_xyz), max_xyz)
 
     def read_patch(self, position: torch.Tensor) -> torch.Tensor:
         x, y, z = [int(v) for v in position.tolist()]
