@@ -7,22 +7,15 @@ from pathlib import Path
 import torch
 
 ROOT = Path(__file__).resolve().parents[2]
-PROTO_DIR = ROOT / "spatial_memory_proto"
 
-sys.path.insert(0, str(PROTO_DIR))
 sys.path.insert(0, str(ROOT))
 
 from data_logger import DataLogger, RawSample
 from node_roles import NodeConfig
 from spatial_memory_system import LocalUpdateNet, SpatialMemorySystem
-from sensors.interfaces import (
-    ScanFrame,
-    ScannerConfig,
-    ScannerEnvironment,
-    SensorFrame,
-    SensorReading,
-    SpatialTokenizer,
-)
+from scanner_environment import ScannerConfig, ScannerEnvironment
+from sensors.interfaces import SensorReading
+from tokenizer import ScanFrame, SensorFrame, SpatialTokenizer
 
 
 class StructuralDataTypesTest(unittest.TestCase):

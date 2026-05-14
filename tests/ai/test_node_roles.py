@@ -10,7 +10,7 @@ if torch_spec is None:
 else:
     import torch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "spatial_memory_proto"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 @unittest.skipIf(torch is None, "torch is not installed")

@@ -5,7 +5,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PROTO_DIR = ROOT / "spatial_memory_proto"
 
 torch_spec = importlib.util.find_spec("torch")
 if torch_spec is None:
@@ -13,7 +12,6 @@ if torch_spec is None:
 else:
     import torch
 
-    sys.path.insert(0, str(PROTO_DIR))
     sys.path.insert(0, str(ROOT))
 
     from decision_module import DecisionModule

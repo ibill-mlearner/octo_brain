@@ -19,7 +19,6 @@ from typing import TextIO
 
 ROOT = Path(__file__).resolve().parent
 TESTS_DIR = ROOT / "tests"
-PROTO_DIR = ROOT / "spatial_memory_proto"
 RESULTS_DIR = ROOT / "test results"
 
 
@@ -70,9 +69,8 @@ def main() -> int:
     RESULTS_DIR.mkdir(exist_ok=True)
     result_path = timestamped_result_path()
 
-    # The prototype files use direct imports instead of package imports, so make
-    # sure the test runner works no matter where it is launched from.
-    sys.path.insert(0, str(PROTO_DIR))
+    # The top-level modules use direct imports, so make sure the test runner
+    # works no matter where it is launched from.
     sys.path.insert(0, str(ROOT))
 
     # Anchor discovery at the repository root so nested test packages are
