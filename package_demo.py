@@ -21,8 +21,6 @@ from sensors.interfaces import (
     SensorReader,
     SensorReading,
     SensorValueProjector,
-    SpatialFramePlacer,
-    SpatialTokenizer,
 )
 
 
@@ -37,7 +35,7 @@ def main() -> None:
     sample_readings = readings or [SensorReading("demo_signal", 42.0, "units")]
     projector: RawValueProjector = SensorValueProjector()
     raw_values = projector.readings_to_spatial_values(sample_readings)
-    print("raw values for spatial placement:")
+    print("raw values for downstream placement:")
     pprint(raw_values[:5])
 
     scanner: ScannerNavigator = ScannerEnvironment(
@@ -47,14 +45,7 @@ def main() -> None:
     print("first scanner origins:")
     pprint(scan_origins[:5])
 
-    tokenizer: SpatialFramePlacer = SpatialTokenizer(window_size=(2, 2, 1), add_eos=False)
-    max_value = max(max(raw_values), 1.0)
-    frames = tokenizer.raw_values_to_frames(raw_values[:4], origins=scan_origins, min_value=0.0, max_value=max_value)
-    print("first sensor frame(s):")
-    pprint(frames[:2])
-
-    print("debug text frame:")
-    pprint(tokenizer.encode_to_frames("sensor demo", origins=scan_origins[:3])[:3])
+    print("spatial placement is intentionally outside sensors; see spatial_memory_proto/tokenizer.py")
 
 
 if __name__ == "__main__":

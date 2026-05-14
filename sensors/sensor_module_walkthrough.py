@@ -19,16 +19,12 @@ from .interfaces import (
     DefaultSensorReader,
     FallbackSensorReader,
     RawValueProjector,
-    ScanFrame,
     ScannerConfig,
     ScannerEnvironment,
     ScannerNavigator,
-    SensorFrame,
     SensorReader,
     SensorReading,
     SensorValueProjector,
-    SpatialFramePlacer,
-    SpatialTokenizer,
     WindowsSensorReader,
 )
 
@@ -62,13 +58,14 @@ raw_values = value_projector.readings_to_spatial_values([cpu_reading, memory_rea
 fallback_reader: SensorReader = FallbackSensorReader()
 fallback_demo_readings = fallback_reader.collect_readings()
 
-# WindowsSensorReader implements SensorReader by asking Windows performance
-# counters directly.
+# WindowsSensorReader implements SensorReader by using the optional psutil
+# Python package on Windows.
 # Demo:
 #     windows_reader.collect_readings()
-# Expected behavior: on Windows, returns CPU/memory/disk/thermal/fan counters the
-# OS exposes. On non-Windows systems or when PowerShell is absent, it returns an
-# empty list instead of crashing.
+# Expected behavior: on Windows with psutil installed, returns CPU, memory,
+# disk, network, battery, thermal, and fan values exposed by the OS/package.
+# On non-Windows systems, or without psutil, it returns an empty list instead
+# of crashing.
 windows_reader: SensorReader = WindowsSensorReader()
 windows_demo_readings = windows_reader.collect_readings()
 
@@ -152,103 +149,13 @@ raster_path = scanner.raster_scan(serpentine=True)
 
 
 # ---------------------------------------------------------------------------
-# Raw value tokenizer and frame placement
+# Spatial placement moved out of sensors
 # ---------------------------------------------------------------------------
 
-# SpatialTokenizer maps raw numeric streams or debug text into scanner-window
-# coordinates. add_eos controls only the debug text path.
-tokenizer: SpatialFramePlacer = SpatialTokenizer(window_size=(2, 2, 1), add_eos=True)
-
-# SpatialTokenizer.window_volume
-# Demo:
-#     tokenizer.window_volume
-# Expected behavior: multiplies the three window dimensions. A (2,2,1) window
-# can hold four samples per frame.
-window_volume = tokenizer.window_volume
-
-# normalize_raw_values(values, min_value=0.0, max_value=255.0)
-# Demo:
-#     tokenizer.normalize_raw_values([-10, 0, 127.5, 255, 999])
-# Expected behavior: clips values into the min/max range, then scales to 0..1.
-normalized_values = tokenizer.normalize_raw_values([-10, 0, 127.5, 255, 999])
-
-# chunk(values)
-# Demo:
-#     tokenizer.chunk([0, 1, 2, 3, 4])
-# Expected behavior: splits a sequence into frame-sized tuples. With volume 4,
-# this returns [(0,1,2,3), (4,)].
-chunks = tokenizer.chunk([0, 1, 2, 3, 4])
-
-# local_coordinate(local_index)
-# Demo:
-#     tokenizer.local_coordinate(3)
-# Expected behavior: converts a flat index inside the local scanner window into
-# x-then-y-then-z coordinates. Index 3 in a (2,2,1) window is (1,1,0).
-local_coord = tokenizer.local_coordinate(3)
-
-# coordinates_for_count(origin, count)
-# Demo:
-#     tokenizer.coordinates_for_count((10, 20, 30), 3)
-# Expected behavior: returns absolute coordinates for the first count local
-# positions added to origin: ((10,20,30), (11,20,30), (10,21,30)).
-absolute_coords = tokenizer.coordinates_for_count((10, 20, 30), 3)
-
-# token_coordinates(origin, count)
-# Demo:
-#     tokenizer.token_coordinates((10, 20, 30), 3)
-# Expected behavior: same as coordinates_for_count; this name remains for older
-# text/debug callers.
-token_coords = tokenizer.token_coordinates((10, 20, 30), 3)
-
-# raw_values_to_frames(values, origins, min_value=0.0, max_value=255.0)
-# Demo:
-#     tokenizer.raw_values_to_frames([0, 127.5, 255, 64, 32], [(0,0,0), (10,0,0)])
-# Expected behavior: normalizes the raw numbers, chunks by window volume, and
-# returns SensorFrame objects carrying origin, window size, normalized values,
-# and absolute coordinates.
-sensor_frames = tokenizer.raw_values_to_frames([0, 127.5, 255, 64, 32], origins=[(0, 0, 0), (10, 0, 0)])
-
-# encode(text)
-# Demo:
-#     tokenizer.encode("hi")
-# Expected behavior: UTF-8 bytes are offset above special-token IDs; because
-# add_eos=True, the sequence ends with SpatialTokenizer.EOS.
-token_ids = tokenizer.encode("hi")
-
-# decode(token_ids, stop_at_eos=True)
-# Demo:
-#     tokenizer.decode(token_ids)
-# Expected behavior: reverses encode() back to text and stops at EOS by default.
-# Padding/unknown/special IDs are ignored.
-decoded_text = tokenizer.decode(token_ids)
-
-# encode_to_frames(text, origins)
-# Demo:
-#     tokenizer.encode_to_frames("hello", [(0,0,0), (10,0,0)])
-# Expected behavior: encodes debug text, chunks token IDs by window volume, and
-# returns ScanFrame objects with token IDs and coordinates. This is only a debug
-# convenience; raw sensors should use raw_values_to_frames().
-scan_frames = tokenizer.encode_to_frames("hello", origins=[(0, 0, 0), (10, 0, 0)])
-
-# ScanFrame can also be instantiated directly if a caller already has token IDs
-# and coordinates. Expected behavior: stores the provided debug/text token frame
-# exactly as passed.
-manual_scan_frame = ScanFrame(
-    origin=(0, 0, 0),
-    window_size=(2, 2, 1),
-    token_ids=(SpatialTokenizer.BYTE_OFFSET + ord("x"), SpatialTokenizer.EOS),
-    coordinates=((0, 0, 0), (1, 0, 0)),
-)
-
-# SensorFrame can also be instantiated directly if a caller already has raw
-# normalized values and coordinates. Expected behavior: stores one raw numeric
-# sensor frame exactly as passed.
-manual_sensor_frame = SensorFrame(
-    origin=(0, 0, 0),
-    window_size=(2, 2, 1),
-    values=(0.0, 0.5, 1.0),
-    coordinates=((0, 0, 0), (1, 0, 0), (0, 1, 0)),
-)
+# Tokenizer/frame placement code is intentionally not demonstrated here anymore.
+# The sensors package should expose raw desktop readings and scanner movement
+# primitives only; AI-specific spatial placement now lives in
+# spatial_memory_proto/tokenizer.py.
 
 
 def main() -> None:
@@ -264,17 +171,7 @@ def main() -> None:
     print("scanner clamped/moved/absolute/followed:", clamped_position, moved_position, absolute_position, followed_position)
     print("scanner path:", path)
     print("raster first five:", raster_path[:5])
-    print("tokenizer window_volume:", window_volume)
-    print("normalized_values:", normalized_values)
-    print("chunks:", chunks)
-    print("local/absolute/token coords:", local_coord, absolute_coords, token_coords)
-    print("sensor_frames:")
-    pprint(sensor_frames)
-    print("token_ids/decoded_text:", token_ids, decoded_text)
-    print("scan_frames:")
-    pprint(scan_frames)
-    print("manual frames:")
-    pprint([manual_scan_frame, manual_sensor_frame])
+    print("spatial placement:", "see spatial_memory_proto/tokenizer.py")
 
 
 if __name__ == "__main__":
