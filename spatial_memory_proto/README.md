@@ -110,4 +110,4 @@ From the repository root, run the single test runner file:
 python run_tests.py
 ```
 
-That file discovers and runs every `test_*.py` file inside the `tests/` folder.
+That file discovers and runs every `test_*.py` file inside the `tests/` folder. It also saves a timestamped `.txt` copy of the console output in the `test results/` folder, with a clear pass/fail header at the top.
