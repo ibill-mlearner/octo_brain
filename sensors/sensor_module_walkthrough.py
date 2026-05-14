@@ -155,7 +155,7 @@ raster_path = scanner.raster_scan(serpentine=True)
 # Tokenizer/frame placement code is intentionally not demonstrated here anymore.
 # The sensors package should expose raw desktop readings and scanner movement
 # primitives only; AI-specific spatial placement now lives in
-# tokenizer.py.
+# tentacles/tokenizer.py.
 
 
 def main() -> None:
@@ -171,7 +171,7 @@ def main() -> None:
     print("scanner clamped/moved/absolute/followed:", clamped_position, moved_position, absolute_position, followed_position)
     print("scanner path:", path)
     print("raster first five:", raster_path[:5])
-    print("spatial placement:", "see tokenizer.py")
+    print("spatial placement:", "see tentacles/tokenizer.py")
 
 
 if __name__ == "__main__":

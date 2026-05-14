@@ -1,7 +1,7 @@
 import torch
 
-from prediction_head import PredictionHead
-from spatial_memory_system import SpatialMemorySystem
+from tentacles.prediction_head import PredictionHead
+from tentacles.spatial_memory_system import SpatialMemorySystem
 
 from .base_node import BaseNode
 from .node_config import NodeConfig

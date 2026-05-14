@@ -1,7 +1,7 @@
 from dataclasses import replace
 from typing import Any, Dict, Iterable, Mapping, Type
 
-from spatial_memory_system import SpatialMemorySystem
+from tentacles.spatial_memory_system import SpatialMemorySystem
 
 from .actor_node import ActorNode
 from .base_node import BaseNode

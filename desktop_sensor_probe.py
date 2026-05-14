@@ -18,7 +18,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from sensors.interfaces import SensorReading, collect_readings, readings_to_spatial_values
-from tokenizer import SpatialTokenizer
+from tentacles.tokenizer import SpatialTokenizer
 
 
 def main() -> None:

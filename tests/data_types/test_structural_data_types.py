@@ -12,10 +12,10 @@ sys.path.insert(0, str(ROOT))
 
 from data_logger import DataLogger, RawSample
 from node_roles import NodeConfig
-from spatial_memory_system import LocalUpdateNet, SpatialMemorySystem
-from scanner_environment import ScannerConfig, ScannerEnvironment
+from tentacles.spatial_memory_system import LocalUpdateNet, SpatialMemorySystem
+from tentacles.scanner_environment import ScannerConfig, ScannerEnvironment
 from sensors.interfaces import SensorReading
-from tokenizer import ScanFrame, SensorFrame, SpatialTokenizer
+from tentacles.tokenizer import ScanFrame, SensorFrame, SpatialTokenizer
 
 
 class StructuralDataTypesTest(unittest.TestCase):

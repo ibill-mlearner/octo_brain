@@ -1,7 +1,7 @@
 import torch
 
-from decision_module import DecisionModule
-from spatial_memory_system import SpatialMemorySystem
+from tentacles.decision_module import DecisionModule
+from tentacles.spatial_memory_system import SpatialMemorySystem
 
 from .base_node import BaseNode
 from .node_config import NodeConfig

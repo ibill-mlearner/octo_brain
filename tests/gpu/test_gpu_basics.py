@@ -14,9 +14,9 @@ else:
 
     sys.path.insert(0, str(ROOT))
 
-    from decision_module import DecisionModule
-    from prediction_head import PredictionHead
-    from spatial_memory_system import LocalUpdateNet, SpatialMemorySystem
+    from tentacles.decision_module import DecisionModule
+    from tentacles.prediction_head import PredictionHead
+    from tentacles.spatial_memory_system import LocalUpdateNet, SpatialMemorySystem
 
 
 @unittest.skipIf(torch is None, "torch is not installed")

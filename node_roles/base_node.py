@@ -2,7 +2,7 @@ from typing import Dict
 
 import torch
 
-from spatial_memory_system import SpatialMemorySystem
+from tentacles.spatial_memory_system import SpatialMemorySystem
 
 from .node_config import NodeConfig
 
