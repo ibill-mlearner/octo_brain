@@ -12,7 +12,7 @@ This prototype is exploring a very small, always-running AI object built from sp
 
 ## Node roles are the focus
 
-The node role layer is the main design surface right now.
+The node role layer is the main design surface right now. It now lives in the `node_roles/` package so the shared config, base node, sensor, reflex, decision, actor, and action-execution pieces can evolve separately. `NodeRoleServer` gives callers a small MCP-like hub: pass one role input such as `"sensor"` or `"actor"`, add optional specific config fields when needed, and receive the instantiated node object to continue working with directly.
 
 ### Base node
 
@@ -38,9 +38,15 @@ A decision node is the coordination layer. Sensor nodes and actor nodes can repo
 
 An actor node performs actions. It can also have a sensor-like feedback channel, but that feedback should be tuned for extreme sensations rather than every small surface detail. Think of signals like impact, heat, pain, stall, or a failed action attempt.
 
+The actor delegates movement execution to the `Actions` class. That keeps the node role small while giving action logic its own file/class where richer policy, safety checks, actuator adapters, and feedback shaping can grow.
+
 ## Current files
 
 - `spatial_memory_system.py` contains the Torch memory field and local update network.
+- `node_roles/` is the package for the base, sensor, reflex, decision, actor, action, config, and MCP-like role factory code around the shared memory core.
+- `sensors/interfaces.py` is the public interface layer. External code should access sensor classes, helpers, and Protocols there instead of importing concrete implementation files directly.
+- `sensors/tokenizer.py` is the concrete placement helper implementation. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
+- `sensors/scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
 - `node_roles.py` sketches the base, sensor, reflex, decision, and actor roles around the shared memory core.
 - `tokenizer.py` is now a placement helper. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
 - `scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
