@@ -1,3 +1,4 @@
+# Moved out of the sensors package because sensors should stay raw/non-AI; this spatial placement helper belongs with the spatial memory prototype.
 from dataclasses import dataclass
 from typing import Iterable, List, Sequence, Tuple
 

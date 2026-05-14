@@ -12,7 +12,7 @@ This prototype is exploring a very small, always-running AI object built from sp
 
 ## Node roles are the focus
 
-The node role layer is the main design surface right now.
+The node role layer is the main design surface right now. It now lives in the `node_roles/` package so the shared config, base node, sensor, reflex, decision, actor, and action-execution pieces can evolve separately. `NodeRoleServer` gives callers a small MCP-like hub: pass one role input such as `"sensor"` or `"actor"`, add optional specific config fields when needed, and receive the instantiated node object to continue working with directly.
 
 ### Base node
 
@@ -38,14 +38,26 @@ A decision node is the coordination layer. Sensor nodes and actor nodes can repo
 
 An actor node performs actions. It can also have a sensor-like feedback channel, but that feedback should be tuned for extreme sensations rather than every small surface detail. Think of signals like impact, heat, pain, stall, or a failed action attempt.
 
+The actor delegates movement execution to the `Actions` class. That keeps the node role small while giving action logic its own file/class where richer policy, safety checks, actuator adapters, and feedback shaping can grow.
+
 ## Current files
 
 - `spatial_memory_system.py` contains the Torch memory field and local update network.
+- `node_roles/` is the package for the base, sensor, reflex, decision, actor, action, config, and MCP-like role factory code around the shared memory core.
+- `sensors/interfaces.py` is the public interface layer. External code should access sensor classes, helpers, and Protocols there instead of importing concrete implementation files directly.
+- `sensors/tokenizer.py` is the concrete placement helper implementation. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
+- `sensors/scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
 - `node_roles.py` sketches the base, sensor, reflex, decision, and actor roles around the shared memory core.
 - `tokenizer.py` is now a placement helper. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
 - `scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
 - `demo.py` runs a simple single-process sketch of the four node roles sharing one memory core.
-- `desktop_sensor_probe.py` is a standalone raw-number probe for desktop experiments. On Windows 10 it tries PowerShell performance counters first, then falls back to simple process/load values if hardware counters are not exposed.
+- `desktop_sensor_probe.py` is a spatial-memory wrapper around the top-level desktop sensor probe. It maps raw readings into a local scanner frame for experiments.
+- `../sensors/interfaces.py` is the public interface layer. External code should access sensor classes, helpers, and Protocols there instead of importing concrete implementation files directly.
+- `../sensors/scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
+- `demo.py` runs a simple single-process sketch of the four node roles sharing one memory core.
+- `../sensors/desktop_sensor_probe.py` is a standalone raw-number probe. It prefers the Python `psutil` package for desktop counters and falls back to standard-library process/load values.
+- `../sensors/sensor_module_walkthrough.py` is a readable reference that imports through the interface layer, instantiates every concrete sensor-module class, and comments the expected behavior of each method.
+- `../package_demo.py` is a root-level smoke demo for running the standalone sensors package through its public interface.
 - `data_logger.py` is a small SQLite logger for viability runs: raw samples, node messages, and memory-step observations.
 - `../docs/viability_logging_plan.md` outlines the first database schema and viability questions.
 
@@ -72,12 +84,19 @@ python -m pip install -r requirements.txt
 ```
 
 The tokenizer and parked scanner-environment tests use only the Python standard library.
+The tokenizer, parked scanner-environment, and sensor walkthrough run without mandatory third-party sensor packages; install `psutil` for richer desktop readings.
 
 ## Run the demo
 
 ```bash
 cd spatial_memory_proto
 python demo.py
+```
+
+## Run the sensors package demo
+
+```bash
+python package_demo.py
 ```
 
 ## Probe desktop raw numbers
@@ -87,9 +106,10 @@ This is not wired into the model yet. It is only a way to see whether the curren
 ```bash
 cd spatial_memory_proto
 python desktop_sensor_probe.py --samples 5 --delay 1
+python -m sensors.desktop_sensor_probe --samples 5 --delay 1
 ```
 
-On Windows 10, the probe tries CPU, memory, disk, queue-length, temperature, and fan counters through PowerShell/WMI. Temperature and fan readings are often hidden by hardware drivers, so missing values are okay.
+On Windows, the probe uses the optional Python `psutil` package instead of a custom PowerShell/WMI script. Temperature and fan readings are hardware/driver dependent, so missing values are okay.
 
 ## Database logging plan
 
@@ -104,8 +124,20 @@ See `docs/viability_logging_plan.md` for the schema, first queries, and what we 
 
 ## Run tests
 
-From the repository root:
+From the repository root, run the single test runner file:
 
 ```bash
-python -m unittest discover -s tests
+python run_tests.py
 ```
+
+That file discovers and runs every `test_*.py` file inside the categorized `tests/` folder tree. It also saves a timestamped `.txt` copy of the console output in the `test results/` folder, with a clear pass/fail header at the top.
+
+Current test folders:
+
+- `tests/ai/` for AI/node-role behavior.
+- `tests/data_logging/` for SQLite viability logging.
+- `tests/data_types/` for value/type conversion assumptions.
+- `tests/gpu/` for basic GPU data movement smoke tests.
+- `tests/sensors/` for raw sensor/tokenizer placement.
+- `tests/spatial_memory/` for scanner and memory-field behavior.
+That file discovers and runs every `test_*.py` file inside the `tests/` folder. It also saves a timestamped `.txt` copy of the console output in the `test results/` folder, with a clear pass/fail header at the top.
