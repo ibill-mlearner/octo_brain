@@ -47,9 +47,18 @@ The actor delegates movement execution to the `Actions` class. That keeps the no
 - `sensors/interfaces.py` is the public interface layer. External code should access sensor classes, helpers, and Protocols there instead of importing concrete implementation files directly.
 - `sensors/tokenizer.py` is the concrete placement helper implementation. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
 - `sensors/scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
+- `node_roles.py` sketches the base, sensor, reflex, decision, and actor roles around the shared memory core.
+- `tokenizer.py` is now a placement helper. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
+- `scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
 - `demo.py` runs a simple single-process sketch of the four node roles sharing one memory core.
-- `sensors/desktop_sensor_probe.py` is a standalone raw-number probe for desktop experiments. On Windows 10 it tries PowerShell performance counters first, then falls back to simple process/load values if hardware counters are not exposed.
-- `sensors/sensor_module_walkthrough.py` is a readable reference that imports through the interface layer, instantiates every concrete sensor-module class, and comments the expected behavior of each method.
+- `desktop_sensor_probe.py` is a standalone raw-number probe for desktop experiments. On Windows 10 it tries PowerShell performance counters first, then falls back to simple process/load values if hardware counters are not exposed.
+- `../sensors/interfaces.py` is the public interface layer. External code should access sensor classes, helpers, and Protocols there instead of importing concrete implementation files directly.
+- `../sensors/tokenizer.py` is the concrete placement helper implementation. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
+- `../sensors/scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
+- `demo.py` runs a simple single-process sketch of the four node roles sharing one memory core.
+- `../sensors/desktop_sensor_probe.py` is a standalone raw-number probe for desktop experiments. On Windows 10 it tries PowerShell performance counters first, then falls back to simple process/load values if hardware counters are not exposed.
+- `../sensors/sensor_module_walkthrough.py` is a readable reference that imports through the interface layer, instantiates every concrete sensor-module class, and comments the expected behavior of each method.
+- `../package_demo.py` is a root-level smoke demo for running the standalone sensors package through its public interface.
 - `data_logger.py` is a small SQLite logger for viability runs: raw samples, node messages, and memory-step observations.
 - `../docs/viability_logging_plan.md` outlines the first database schema and viability questions.
 
@@ -75,6 +84,7 @@ Install the neural/runtime dependency when you want to run the Torch demo:
 python -m pip install -r requirements.txt
 ```
 
+The tokenizer and parked scanner-environment tests use only the Python standard library.
 The tokenizer, parked scanner-environment, and sensor walkthrough use only the Python standard library.
 
 ## Run the demo
@@ -84,12 +94,19 @@ cd spatial_memory_proto
 python demo.py
 ```
 
+## Run the sensors package demo
+
+```bash
+python package_demo.py
+```
+
 ## Probe desktop raw numbers
 
 This is not wired into the model yet. It is only a way to see whether the current desktop exposes constantly changing raw numbers we can map into a local sensor frame.
 
 ```bash
 cd spatial_memory_proto
+python desktop_sensor_probe.py --samples 5 --delay 1
 python -m sensors.desktop_sensor_probe --samples 5 --delay 1
 ```
 
@@ -114,4 +131,14 @@ From the repository root, run the single test runner file:
 python run_tests.py
 ```
 
+That file discovers and runs every `test_*.py` file inside the categorized `tests/` folder tree. It also saves a timestamped `.txt` copy of the console output in the `test results/` folder, with a clear pass/fail header at the top.
+
+Current test folders:
+
+- `tests/ai/` for AI/node-role behavior.
+- `tests/data_logging/` for SQLite viability logging.
+- `tests/data_types/` for value/type conversion assumptions.
+- `tests/gpu/` for basic GPU data movement smoke tests.
+- `tests/sensors/` for raw sensor/tokenizer placement.
+- `tests/spatial_memory/` for scanner and memory-field behavior.
 That file discovers and runs every `test_*.py` file inside the `tests/` folder. It also saves a timestamped `.txt` copy of the console output in the `test results/` folder, with a clear pass/fail header at the top.
