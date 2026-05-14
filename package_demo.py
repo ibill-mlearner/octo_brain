@@ -45,7 +45,7 @@ def main() -> None:
     print("first scanner origins:")
     pprint(scan_origins[:5])
 
-    print("spatial placement is intentionally outside sensors; see spatial_memory_proto/tokenizer.py")
+    print("spatial placement is intentionally outside sensors; see tokenizer.py")
 
 
 if __name__ == "__main__":

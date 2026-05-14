@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from spatial_memory_proto.tokenizer import SpatialTokenizer
+from tokenizer import SpatialTokenizer
 
 
 class SpatialTokenizerTest(unittest.TestCase):

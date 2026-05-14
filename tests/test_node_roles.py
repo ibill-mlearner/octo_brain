@@ -7,7 +7,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - depends on local environment
     torch = None
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spatial_memory_proto"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 @unittest.skipIf(torch is None, "torch is not installed")
