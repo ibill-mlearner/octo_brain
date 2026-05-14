@@ -26,6 +26,21 @@ class GpuBasicsTest(unittest.TestCase):
     def target_device(self):
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    def assertSameDevice(self, actual, expected):
+        """Treat ``cuda`` and the default ``cuda:0`` tensor device as equivalent."""
+        actual_device = torch.device(actual)
+        expected_device = torch.device(expected)
+
+        self.assertEqual(actual_device.type, expected_device.type)
+        if expected_device.type != "cuda":
+            self.assertEqual(actual_device.index, expected_device.index)
+            return
+
+        expected_index = expected_device.index
+        if expected_index is None:
+            expected_index = torch.cuda.current_device()
+        self.assertEqual(actual_device.index, expected_index)
+
     def test_cuda_tensor_round_trip_when_gpu_is_available(self):
         if not torch.cuda.is_available():
             self.skipTest("CUDA GPU is not available")
@@ -50,11 +65,11 @@ class GpuBasicsTest(unittest.TestCase):
         patch = memory.read_patch(position)
         updated_active, next_position, visible_patch = memory.step(active_state, position, write_back=False)
 
-        self.assertEqual(memory.memory_field.device, device)
-        self.assertEqual(patch.device, device)
-        self.assertEqual(updated_active.device, device)
-        self.assertEqual(next_position.device, device)
-        self.assertEqual(visible_patch.device, device)
+        self.assertSameDevice(memory.memory_field.device, device)
+        self.assertSameDevice(patch.device, device)
+        self.assertSameDevice(updated_active.device, device)
+        self.assertSameDevice(next_position.device, device)
+        self.assertSameDevice(visible_patch.device, device)
         self.assertEqual(tuple(patch.shape), (1, 2, 3, 3, 3))
         self.assertEqual(tuple(updated_active.shape), tuple(active_state.shape))
         self.assertEqual(tuple(next_position.shape), (3,))
@@ -68,10 +83,10 @@ class GpuBasicsTest(unittest.TestCase):
 
         updated_active, delta, gate, move_logits = net(active, patch)
 
-        self.assertEqual(updated_active.device, device)
-        self.assertEqual(delta.device, device)
-        self.assertEqual(gate.device, device)
-        self.assertEqual(move_logits.device, device)
+        self.assertSameDevice(updated_active.device, device)
+        self.assertSameDevice(delta.device, device)
+        self.assertSameDevice(gate.device, device)
+        self.assertSameDevice(move_logits.device, device)
         self.assertEqual(tuple(updated_active.shape), tuple(active.shape))
         self.assertEqual(tuple(delta.shape), tuple(active.shape))
         self.assertEqual(tuple(gate.shape), tuple(active.shape))
@@ -96,8 +111,8 @@ class GpuBasicsTest(unittest.TestCase):
         predicted_patch = predictor(active, patch)
         action = decision(active, error_scalar, velocity)
 
-        self.assertEqual(predicted_patch.device, device)
-        self.assertEqual(action.device, device)
+        self.assertSameDevice(predicted_patch.device, device)
+        self.assertSameDevice(action.device, device)
         self.assertEqual(tuple(predicted_patch.shape), tuple(patch.shape))
         self.assertEqual(tuple(action.shape), (3,))
         self.assertEqual(predicted_patch.dtype, active.dtype)

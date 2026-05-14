@@ -14,6 +14,7 @@ from typing import Iterable, List, Protocol, runtime_checkable
 
 from .desktop_sensor_probe import SensorReading, collect_readings, fallback_readings, psutil_readings, readings_to_spatial_values, windows_readings
 from .scanner_environment import Coordinate, ScannerConfig, ScannerEnvironment
+from spatial_memory_proto.tokenizer import ScanFrame, SensorFrame, SpatialTokenizer
 
 
 @runtime_checkable
@@ -93,10 +94,13 @@ __all__ = [
     "RawValueProjector",
     "ScannerConfig",
     "ScannerEnvironment",
+    "ScanFrame",
     "ScannerNavigator",
+    "SensorFrame",
     "SensorReader",
     "SensorReading",
     "SensorValueProjector",
+    "SpatialTokenizer",
     "WindowsSensorReader",
     "collect_readings",
     "fallback_readings",
