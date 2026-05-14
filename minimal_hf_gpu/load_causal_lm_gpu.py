@@ -1,12 +1,12 @@
 # PyCharm: run this file directly with the interpreter that already has
 # the verified CUDA Torch install. Do not reinstall Torch.
-# If this interpreter is missing HuggingFace, install only: transformers
+# If this interpreter is missing HuggingFace support, install only: transformers safetensors
 # This layer only loads a causal language model onto cuda:0.
 # No tokenizer, no text generation, no pipeline.
 
 import torch
 
-MODEL_ID = "sshleifer/tiny-gpt2"
+MODEL_ID = "hf-internal-testing/tiny-random-gpt2"
 
 print(torch.__version__)
 print(torch.version.cuda)
@@ -30,7 +30,10 @@ transformers_import_utils.is_torchvision_available = lambda: False
 
 from transformers import AutoModelForCausalLM
 
-model = AutoModelForCausalLM.from_pretrained(MODEL_ID)
+# Use a tiny causal LM repo that has model.safetensors. This avoids the
+# Transformers torch.load safety block on Torch 2.5.1 while preserving the
+# working CUDA Torch install.
+model = AutoModelForCausalLM.from_pretrained(MODEL_ID, use_safetensors=True)
 model.to("cuda")
 model.eval()
 
