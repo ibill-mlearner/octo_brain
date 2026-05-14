@@ -75,7 +75,12 @@ def main() -> int:
     sys.path.insert(0, str(PROTO_DIR))
     sys.path.insert(0, str(ROOT))
 
-    suite = unittest.defaultTestLoader.discover(str(TESTS_DIR), pattern="test_*.py")
+    # Anchor discovery at the repository root so nested test packages are
+    # imported as ``tests.<package>`` instead of colliding with root packages
+    # such as ``sensors``.
+    suite = unittest.defaultTestLoader.discover(
+        str(TESTS_DIR), pattern="test_*.py", top_level_dir=str(ROOT)
+    )
     output = io.StringIO()
     result = unittest.TextTestRunner(stream=output, verbosity=2).run(suite)
     saved_message = f"Saved test results to: {result_path}"
