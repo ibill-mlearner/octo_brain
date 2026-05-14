@@ -13,8 +13,6 @@ from sensors.interfaces import (
     SensorReader,
     SensorReading,
     SensorValueProjector,
-    SpatialFramePlacer,
-    SpatialTokenizer,
     WindowsSensorReader,
 )
 
@@ -26,7 +24,6 @@ class SensorsInterfaceTest(unittest.TestCase):
         self.assertIsInstance(WindowsSensorReader(), SensorReader)
         self.assertIsInstance(SensorValueProjector(), RawValueProjector)
         self.assertIsInstance(ScannerEnvironment(), ScannerNavigator)
-        self.assertIsInstance(SpatialTokenizer(), SpatialFramePlacer)
 
     def test_projector_accesses_values_through_interface_method(self):
         projector: RawValueProjector = SensorValueProjector()
@@ -34,7 +31,7 @@ class SensorsInterfaceTest(unittest.TestCase):
 
         self.assertEqual(projector.readings_to_spatial_values(readings), [12.5, 2048.0])
 
-    def test_windows_reader_is_safe_when_powershell_is_missing(self):
+    def test_windows_reader_is_safe_without_optional_probe(self):
         reader: SensorReader = WindowsSensorReader()
 
         self.assertIsInstance(reader.collect_readings(), list)
