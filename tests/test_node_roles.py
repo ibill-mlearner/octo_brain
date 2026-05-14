@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 class NodeRolesPackageTest(unittest.TestCase):
     def test_server_connects_role_from_single_input_with_specific_overrides(self):
         from node_roles import ActorNode, NodeRoleServer
-        from spatial_memory_system import SpatialMemorySystem
+        from tentacles.spatial_memory_system import SpatialMemorySystem
 
         core = SpatialMemorySystem(channels=2, field_size=(20, 20, 20), window_size=(2, 2, 2))
         server = NodeRoleServer(core)
@@ -28,7 +28,7 @@ class NodeRolesPackageTest(unittest.TestCase):
 
     def test_server_connects_mapping_request(self):
         from node_roles import NodeRoleServer, SensorNode
-        from spatial_memory_system import SpatialMemorySystem
+        from tentacles.spatial_memory_system import SpatialMemorySystem
 
         core = SpatialMemorySystem(channels=1, field_size=(20, 20, 20), window_size=(2, 2, 2))
         server = NodeRoleServer(core)
@@ -40,7 +40,7 @@ class NodeRolesPackageTest(unittest.TestCase):
 
     def test_actor_delegates_movement_to_actions_class(self):
         from node_roles import Actions, ActorNode, NodeConfig
-        from spatial_memory_system import SpatialMemorySystem
+        from tentacles.spatial_memory_system import SpatialMemorySystem
 
         core = SpatialMemorySystem(channels=1, field_size=(20, 20, 20), window_size=(2, 2, 2))
         actor = ActorNode(NodeConfig(node_id="actor", role="actor", channels=1, window_size=(2, 2, 2)), core)

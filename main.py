@@ -3,7 +3,7 @@
 import torch
 
 from node_roles import NodeRoleServer
-from spatial_memory_system import SpatialMemorySystem
+from tentacles.spatial_memory_system import SpatialMemorySystem
 
 
 def main() -> None:

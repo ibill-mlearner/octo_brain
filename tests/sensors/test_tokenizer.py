@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tokenizer import SpatialTokenizer
+from tentacles.tokenizer import SpatialTokenizer
 
 
 class SpatialTokenizerTest(unittest.TestCase):

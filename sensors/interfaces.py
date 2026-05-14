@@ -5,7 +5,7 @@ Python usually represents Java/C++-style interfaces with ``typing.Protocol``:
 callers type against the method shape they need, while concrete classes can live
 in smaller implementation files. External code should import sensor classes,
 helpers, and protocols from this file instead of reaching into
-``scanner_environment.py`` or ``desktop_sensor_probe.py`` directly.
+``tentacles.scanner_environment`` or ``desktop_sensor_probe.py`` directly.
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ from __future__ import annotations
 from typing import Iterable, List, Protocol, runtime_checkable
 
 from .desktop_sensor_probe import SensorReading, collect_readings, fallback_readings, psutil_readings, readings_to_spatial_values, windows_readings
-from .scanner_environment import Coordinate, ScannerConfig, ScannerEnvironment
-from spatial_memory_proto.tokenizer import ScanFrame, SensorFrame, SpatialTokenizer
+from tentacles.scanner_environment import Coordinate, ScannerConfig, ScannerEnvironment
+from tentacles.tokenizer import ScanFrame, SensorFrame, SpatialTokenizer
 
 
 @runtime_checkable

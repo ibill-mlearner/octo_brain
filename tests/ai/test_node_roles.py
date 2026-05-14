@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 class NodeRolesTest(unittest.TestCase):
     def test_sensor_ingest_raw_values_updates_active_state(self):
         from node_roles import NodeConfig, SensorNode
-        from spatial_memory_system import SpatialMemorySystem
+        from tentacles.spatial_memory_system import SpatialMemorySystem
 
         core = SpatialMemorySystem(channels=1, field_size=(6, 6, 6), window_size=(3, 3, 3), movement_mode="static")
         sensor = SensorNode(NodeConfig(node_id="sensor-test", role="sensor", channels=1, window_size=(3, 3, 3)), core)
@@ -28,7 +28,7 @@ class NodeRolesTest(unittest.TestCase):
 
     def test_actor_ingest_raw_values_keeps_only_extreme_values(self):
         from node_roles import ActorNode, NodeConfig
-        from spatial_memory_system import SpatialMemorySystem
+        from tentacles.spatial_memory_system import SpatialMemorySystem
 
         core = SpatialMemorySystem(channels=1, field_size=(6, 6, 6), window_size=(3, 3, 3), movement_mode="static")
         actor = ActorNode(NodeConfig(node_id="actor-test", role="actor", channels=1, window_size=(3, 3, 3)), core)

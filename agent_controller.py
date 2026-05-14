@@ -5,9 +5,9 @@ import random
 import torch
 import torch.nn as nn
 
-from spatial_memory_system import SpatialMemorySystem
-from prediction_head import PredictionHead
-from decision_module import DecisionModule
+from tentacles.spatial_memory_system import SpatialMemorySystem
+from tentacles.prediction_head import PredictionHead
+from tentacles.decision_module import DecisionModule
 
 
 class AgentController(nn.Module):

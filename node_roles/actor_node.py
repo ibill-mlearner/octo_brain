@@ -1,6 +1,6 @@
 import torch
 
-from spatial_memory_system import SpatialMemorySystem
+from tentacles.spatial_memory_system import SpatialMemorySystem
 
 from .actions import Actions
 from .base_node import BaseNode
