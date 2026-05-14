@@ -1,0 +1,89 @@
+{
+  "schema": "octo_brain.agent_instructions.v1",
+  "scope": "repository",
+  "source_human_readable": "AGENTS.md",
+  "priority": {
+    "direct_system_developer_user_instructions": "highest",
+    "this_file": "repository_guidance"
+  },
+  "rules": [
+    {
+      "id": "tests.human_only",
+      "type": "prohibition",
+      "applies_to": "ai_coding_agents",
+      "instruction": "Do not run project tests, test runners, or test-like commands.",
+      "examples_forbidden": [
+        "python run_tests.py",
+        "pytest",
+        "unittest",
+        "python -m unittest",
+        "direct execution of files under tests/"
+      ],
+      "allowed_actor": "human_project_owner",
+      "required_reporting": "When tests would normally be run, state that tests were intentionally not run because test execution is reserved for the human project owner."
+    },
+    {
+      "id": "style.read_coding_practices",
+      "type": "workflow",
+      "trigger": "before_python_edits",
+      "instruction": "Read CODING_PRACTICES.md before shaping Python edits.",
+      "style_summary": "Prefer vertical, list-like function signatures when signatures grow beyond a few simple arguments."
+    },
+    {
+      "id": "architecture.use_conceptual_map",
+      "type": "workflow",
+      "trigger": "before_spatial_memory_or_node_role_changes",
+      "instruction": "Use docs/spatial_memory_engineering_explanation.md as the conceptual map.",
+      "preserve_concepts": [
+        "persistent_memory",
+        "local_patches",
+        "active_state",
+        "movement",
+        "prediction_error",
+        "reflex_behavior",
+        "node_messages"
+      ]
+    },
+    {
+      "id": "spatial_memory.stability_caution",
+      "type": "caution",
+      "targets": [
+        "spatial_memory_system.py"
+      ],
+      "instruction": "Do not reintroduce clamps, bounds, scaling knobs, or recurrent-update behavior changes from prior reverted stability ideas unless the owner explicitly asks for that direction."
+    },
+    {
+      "id": "patches.keep_small",
+      "type": "preference",
+      "instruction": "Prefer small, inspectable patches. Avoid broad cleanup or renaming unless specifically requested.",
+      "reason": "The repository contains exploratory modules and duplicated or legacy playground files."
+    },
+    {
+      "id": "artifacts.do_not_edit_generated",
+      "type": "prohibition",
+      "instruction": "Do not edit generated artifacts or local run outputs except intentional repository placeholder files.",
+      "patterns_forbidden": [
+        "__pycache__/",
+        "*.pyc",
+        "test results/*"
+      ],
+      "patterns_allowed": [
+        "test results/.gitignore",
+        "test results/.gitkeep"
+      ]
+    },
+    {
+      "id": "modules.identify_canonical_location",
+      "type": "workflow",
+      "trigger": "before_sensor_scanning_data_logging_or_node_role_changes",
+      "instruction": "Identify whether the canonical file is at repository root, under sensors/, or under node_roles/ before editing.",
+      "reason": "Several similarly named modules are used for different prototype layers."
+    }
+  ],
+  "final_response_requirements": [
+    {
+      "id": "report_tests_human_only",
+      "instruction": "If tests would normally be appropriate, clearly report that testing is reserved for the human project owner."
+    }
+  ]
+}
