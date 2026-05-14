@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spatial_memory_proto"))
 
-from tokenizer import SpatialTokenizer
+from sensors.interfaces import SpatialTokenizer
 
 
 class SpatialTokenizerTest(unittest.TestCase):
@@ -54,7 +54,7 @@ class SpatialTokenizerTest(unittest.TestCase):
 
 class DesktopSensorProbeTest(unittest.TestCase):
     def test_probe_readings_can_be_turned_into_raw_values(self):
-        from desktop_sensor_probe import SensorReading, readings_to_spatial_values
+        from sensors.interfaces import SensorReading, readings_to_spatial_values
 
         readings = [SensorReading("cpu", 12.5, "%"), SensorReading("memory", 2048.0, "MB")]
 

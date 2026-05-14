@@ -42,10 +42,12 @@ An actor node performs actions. It can also have a sensor-like feedback channel,
 
 - `spatial_memory_system.py` contains the Torch memory field and local update network.
 - `node_roles.py` sketches the base, sensor, reflex, decision, and actor roles around the shared memory core.
-- `tokenizer.py` is now a placement helper. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
-- `scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
+- `sensors/interfaces.py` is the public interface layer. External code should access sensor classes, helpers, and Protocols there instead of importing concrete implementation files directly.
+- `sensors/tokenizer.py` is the concrete placement helper implementation. Its primary path maps raw numeric streams into scanner-window coordinates. Its byte-level text path is only a debugging convenience.
+- `sensors/scanner_environment.py` is parked for now. It may be useful later for deterministic movement/path experiments, but it is not the center of the design.
 - `demo.py` runs a simple single-process sketch of the four node roles sharing one memory core.
-- `desktop_sensor_probe.py` is a standalone raw-number probe for desktop experiments. On Windows 10 it tries PowerShell performance counters first, then falls back to simple process/load values if hardware counters are not exposed.
+- `sensors/desktop_sensor_probe.py` is a standalone raw-number probe for desktop experiments. On Windows 10 it tries PowerShell performance counters first, then falls back to simple process/load values if hardware counters are not exposed.
+- `sensors/sensor_module_walkthrough.py` is a readable reference that imports through the interface layer, instantiates every concrete sensor-module class, and comments the expected behavior of each method.
 - `data_logger.py` is a small SQLite logger for viability runs: raw samples, node messages, and memory-step observations.
 - `../docs/viability_logging_plan.md` outlines the first database schema and viability questions.
 
@@ -71,7 +73,7 @@ Install the neural/runtime dependency when you want to run the Torch demo:
 python -m pip install -r requirements.txt
 ```
 
-The tokenizer and parked scanner-environment tests use only the Python standard library.
+The tokenizer, parked scanner-environment, and sensor walkthrough use only the Python standard library.
 
 ## Run the demo
 
@@ -86,7 +88,7 @@ This is not wired into the model yet. It is only a way to see whether the curren
 
 ```bash
 cd spatial_memory_proto
-python desktop_sensor_probe.py --samples 5 --delay 1
+python -m sensors.desktop_sensor_probe --samples 5 --delay 1
 ```
 
 On Windows 10, the probe tries CPU, memory, disk, queue-length, temperature, and fan counters through PowerShell/WMI. Temperature and fan readings are often hidden by hardware drivers, so missing values are okay.
