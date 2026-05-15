@@ -9,6 +9,7 @@ timestamped text file in the "test results" folder.
 
 from __future__ import annotations
 
+import inspect
 import io
 import sys
 import unittest
@@ -20,6 +21,158 @@ from typing import TextIO
 ROOT = Path(__file__).resolve().parent
 TESTS_DIR = ROOT / "tests"
 RESULTS_DIR = ROOT / "test results"
+
+
+def expectation_lines_for(test: unittest.TestCase) -> list[str]:
+    """Return speculative expectation comments attached to one test method."""
+    method_name = getattr(test, "_testMethodName", "")
+    method = getattr(test, method_name, None)
+    if method is None:
+        return ["This is what I expect to happen, the test should complete without failure or error."]
+
+    try:
+        source = inspect.getsource(method)
+    except (OSError, TypeError):
+        return ["This is what I expect to happen, the test should complete without failure or error."]
+
+    expectations = []
+    current_expectation: list[str] = []
+    for line in source.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("# This is what I expect to happen,"):
+            if current_expectation:
+                expectations.append(" ".join(current_expectation))
+            current_expectation = [stripped.removeprefix("# ")]
+            continue
+
+        if current_expectation and stripped.startswith("# "):
+            current_expectation.append(stripped.removeprefix("# "))
+            continue
+
+        if current_expectation:
+            expectations.append(" ".join(current_expectation))
+            current_expectation = []
+
+    if current_expectation:
+        expectations.append(" ".join(current_expectation))
+
+    if expectations:
+        return expectations
+    return ["This is what I expect to happen, the test should complete without failure or error."]
+
+
+class ExpectationTextTestResult(unittest.TextTestResult):
+    """Text result that pairs expected outcomes with actual test outcomes."""
+
+    def startTest(self, test: unittest.TestCase) -> None:
+        unittest.TestResult.startTest(self, test)
+        if not self.showAll:
+            return
+
+        self.stream.writeln(self.getDescription(test))
+        for expectation in expectation_lines_for(test):
+            self.stream.writeln(expectation)
+        self.stream.flush()
+
+    def addSuccess(self, test: unittest.TestCase) -> None:
+        unittest.TestResult.addSuccess(self, test)
+        if self.showAll:
+            self._write_actual_result(
+                actual="the test completed without failure or error",
+                result="OK",
+            )
+        elif self.dots:
+            self.stream.write(".")
+            self.stream.flush()
+
+    def addError(self, test: unittest.TestCase, err) -> None:
+        unittest.TestResult.addError(self, test, err)
+        if self.showAll:
+            self._write_actual_result(
+                actual=self._actual_error_summary(err),
+                result="ERROR",
+                details=self._exc_info_to_string(err, test),
+            )
+        elif self.dots:
+            self.stream.write("E")
+            self.stream.flush()
+
+    def addFailure(self, test: unittest.TestCase, err) -> None:
+        unittest.TestResult.addFailure(self, test, err)
+        if self.showAll:
+            self._write_actual_result(
+                actual=self._actual_failure_summary(err),
+                result="FAIL",
+                details=self._exc_info_to_string(err, test),
+            )
+        elif self.dots:
+            self.stream.write("F")
+            self.stream.flush()
+
+    def addSkip(self, test: unittest.TestCase, reason: str) -> None:
+        unittest.TestResult.addSkip(self, test, reason)
+        if self.showAll:
+            self._write_actual_result(
+                actual=f"the test was skipped because {reason}",
+                result="SKIP",
+            )
+        elif self.dots:
+            self.stream.write("s")
+            self.stream.flush()
+
+    def addExpectedFailure(self, test: unittest.TestCase, err) -> None:
+        unittest.TestResult.addExpectedFailure(self, test, err)
+        if self.showAll:
+            self._write_actual_result(
+                actual=self._actual_failure_summary(err),
+                result="EXPECTED FAILURE",
+                details=self._exc_info_to_string(err, test),
+            )
+        elif self.dots:
+            self.stream.write("x")
+            self.stream.flush()
+
+    def addUnexpectedSuccess(self, test: unittest.TestCase) -> None:
+        unittest.TestResult.addUnexpectedSuccess(self, test)
+        if self.showAll:
+            self._write_actual_result(
+                actual="the test passed even though a failure was expected",
+                result="UNEXPECTED SUCCESS",
+            )
+        elif self.dots:
+            self.stream.write("u")
+            self.stream.flush()
+
+    @staticmethod
+    def _exception_summary(err) -> str:
+        exception_type, exception, _ = err
+        if exception is None:
+            return exception_type.__name__
+
+        exception_message = str(exception)
+        if exception_message:
+            return f"{exception_type.__name__}: {exception_message}"
+        return exception_type.__name__
+
+    def _actual_error_summary(self, err) -> str:
+        return f"the test raised {self._exception_summary(err)}"
+
+    def _actual_failure_summary(self, err) -> str:
+        return f"the assertion failed with {self._exception_summary(err)}"
+
+    def _write_actual_result(
+        self,
+        actual: str,
+        result: str,
+        details: str | None = None,
+    ) -> None:
+        self.stream.writeln(f"What actually happened, {actual}.")
+        if details:
+            self.stream.writeln("Actual details:")
+            self.stream.writeln(details.rstrip())
+        self.stream.writeln(f"This is what the test result was, {result}.")
+        self.stream.writeln()
+        self.stream.flush()
 
 
 class TeeStream:
@@ -80,7 +233,11 @@ def main() -> int:
         str(TESTS_DIR), pattern="test_*.py", top_level_dir=str(ROOT)
     )
     output = io.StringIO()
-    result = unittest.TextTestRunner(stream=output, verbosity=2).run(suite)
+    result = unittest.TextTestRunner(
+        stream=output,
+        verbosity=2,
+        resultclass=ExpectationTextTestResult,
+    ).run(suite)
     saved_message = f"Saved test results to: {result_path}"
     report_text = (
         f"Saving test results to: {result_path}\n\n"

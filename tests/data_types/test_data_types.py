@@ -13,7 +13,9 @@ class DataTypesTest(unittest.TestCase):
 
         frame = tokenizer.raw_values_to_frames([0, 128, 255], origins=[(5, 6, 7)])[0]
 
+        # This is what I expect to happen, all(isinstance(value, float) for value in frame.values) should evaluate as true.
         self.assertTrue(all(isinstance(value, float) for value in frame.values))
+        # This is what I expect to happen, all(isinstance(axis_value, int) for coord in frame.coordinates for axis_value i... should evaluate as true.
         self.assertTrue(all(isinstance(axis_value, int) for coord in frame.coordinates for axis_value in coord))
 
     def test_debug_text_tokens_are_integers(self):
@@ -21,6 +23,7 @@ class DataTypesTest(unittest.TestCase):
 
         token_ids = tokenizer.encode("abc")
 
+        # This is what I expect to happen, all(isinstance(token_id, int) for token_id in token_ids) should evaluate as true.
         self.assertTrue(all(isinstance(token_id, int) for token_id in token_ids))
 
 
