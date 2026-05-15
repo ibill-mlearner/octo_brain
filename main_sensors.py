@@ -2,14 +2,18 @@
 Top-level runnable walkthrough and collector for the ``sensors`` module.
 
 This file is intentionally not a unit test. It is a runnable/readable reference
-that instantiates every concrete sensor class and routes access through the
-interface layer. Comments show how each public method or helper is expected to
-behave.
+that explains the sensor path before starting the live polling loop. The actual
+sensor collection, grouping, projection, and JSON persistence behavior lives in
+``sensors`` package modules; this root file stays thin so someone can run it
+from PyCharm and watch fresh sensor readings arrive every five seconds.
 
 Run from the repository root to continuously append raw sensor readings to
 per-sensor JSON files under ``test results/sensor_results``:
 
     python main_sensors.py
+
+Kill the process from PyCharm or the terminal when you are done watching the
+sensor stream.
 """
 
 from __future__ import annotations
@@ -38,7 +42,7 @@ from sensors.interfaces import (
 # unit without changing the value. It is frozen, so callers cannot accidentally
 # mutate a reading after collection.
 cpu_reading = SensorReading(name="cpu_percent", value=37.5, unit="%")
-memory_reading = SensorReading(name="available_memory", value=2048.0, unit="MB")
+memory_reading = SensorReading(name="memory_available", value=2048.0, unit="bytes")
 
 # SensorValueProjector implements the RawValueProjector interface.
 # Demo:
@@ -56,7 +60,6 @@ raw_values = value_projector.readings_to_spatial_values([cpu_reading, memory_rea
 # Expected behavior: returns values that exist on this runtime, such as
 # process_time and, when available, load averages.
 fallback_reader: SensorReader = FallbackSensorReader()
-fallback_demo_readings = fallback_reader.collect_readings()
 
 # WindowsSensorReader implements SensorReader by using the optional psutil
 # Python package on Windows.
@@ -67,16 +70,14 @@ fallback_demo_readings = fallback_reader.collect_readings()
 # On non-Windows systems, or without psutil, it returns an empty list instead
 # of crashing.
 windows_reader: SensorReader = WindowsSensorReader()
-windows_demo_readings = windows_reader.collect_readings()
 
 # DefaultSensorReader implements SensorReader with platform selection.
 # Demo:
 #     default_reader.collect_readings()
-# Expected behavior: on Windows it first tries WindowsSensorReader behavior; if
-# counters are unavailable, or on other operating systems, it falls back to the
-# standard-library readings. This is the reader most callers should use.
+# Expected behavior: it first tries richer psutil-backed desktop readings; if
+# those counters are unavailable, it falls back to the standard-library
+# readings. This is the reader most callers should use.
 default_reader: SensorReader = DefaultSensorReader()
-collected_demo_readings = default_reader.collect_readings()
 
 
 # ---------------------------------------------------------------------------
@@ -84,7 +85,11 @@ collected_demo_readings = default_reader.collect_readings()
 # ---------------------------------------------------------------------------
 
 # ScannerConfig configures the 3D field, local window, and movement stride.
-scanner_config = ScannerConfig(field_size=(30, 20, 10), window_size=(10, 10, 5), stride=(10, 5, 5))
+scanner_config = ScannerConfig(
+    field_size=(30, 20, 10),
+    window_size=(10, 10, 5),
+    stride=(10, 5, 5),
+)
 
 # ScannerConfig.max_origin
 # Demo:
@@ -101,7 +106,10 @@ max_origin = scanner_config.max_origin
 #     ScannerEnvironment(config=scanner_config, position=(99, -1, 3))
 # Expected behavior: __post_init__ clamps the initial position into the legal
 # field and appends that starting position to visited.
-scanner: ScannerNavigator = ScannerEnvironment(config=scanner_config, position=(99, -1, 3))
+scanner: ScannerNavigator = ScannerEnvironment(
+    config=scanner_config,
+    position=(99, -1, 3),
+)
 
 # clamp(position)
 # Demo:
@@ -159,7 +167,27 @@ raster_path = scanner.raster_scan(serpentine=True)
 
 
 def main() -> None:
-    """Start the imported sensor-results collector."""
+    """Explain the sensor walkthrough and start the five-second read loop."""
+
+    print("main_sensors.py walkthrough")
+    print("- SensorReading keeps each raw name/value/unit sample intact.")
+    print(f"- SensorValueProjector strips demo readings to raw values: {raw_values}.")
+    print(
+        "- DefaultSensorReader uses psutil-backed desktop readings when "
+        "available, then falls back to standard-library process/load readings."
+    )
+    print(
+        "- Sensor models group readings by type before each group is written "
+        "to its own JSON file."
+    )
+    print(
+        "- ScannerEnvironment remains a movement walkthrough: "
+        f"max_origin={max_origin}, clamped={clamped_position}, "
+        f"moved={moved_position}, absolute={absolute_position}, "
+        f"path={path}, followed={followed_position}, "
+        f"raster_points={len(raster_path)}."
+    )
+    print("- The live loop below pulls fresh sensor data every five seconds.")
 
     SensorResultsCollector.from_command_line().run_forever()
 
