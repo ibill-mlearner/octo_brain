@@ -13,8 +13,11 @@ class ScannerEnvironmentTest(unittest.TestCase):
 
         origins = env.raster_scan()
 
+        # This is what I expect to happen, len(origins) should equal 1000.
         self.assertEqual(len(origins), 1000)
+        # This is what I expect to happen, origins[0] should equal (0, 0, 0).
         self.assertEqual(origins[0], (0, 0, 0))
+        # This is what I expect to happen, (90, 90, 90) should be present in origins.
         self.assertIn((90, 90, 90), origins)
 
     def test_path_to_clamps_goal_and_moves_axis_aligned(self):
@@ -23,8 +26,11 @@ class ScannerEnvironmentTest(unittest.TestCase):
         path = env.path_to((200, 20, 0), step=(10, 10, 10))
         final_position = env.follow(path)
 
+        # This is what I expect to happen, final_position should equal (90, 20, 0).
         self.assertEqual(final_position, (90, 20, 0))
+        # This is what I expect to happen, path[-1] should equal (90, 20, 0).
         self.assertEqual(path[-1], (90, 20, 0))
+        # This is what I expect to happen, len(path) should equal 11.
         self.assertEqual(len(path), 11)
 
     def test_move_clamps_negative_positions(self):
@@ -32,6 +38,7 @@ class ScannerEnvironmentTest(unittest.TestCase):
 
         position = env.move((-30, -5, 0))
 
+        # This is what I expect to happen, position should equal (0, 5, 10).
         self.assertEqual(position, (0, 5, 10))
 
 

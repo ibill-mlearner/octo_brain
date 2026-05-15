@@ -24,6 +24,7 @@ class NodeRolesTest(unittest.TestCase):
 
         sensor.ingest_raw_values(torch.tensor([0.25, 0.5, 0.75]))
 
+        # This is what I expect to happen, torch.equal(sensor.active_state.flatten()[:3], torch.tensor([0.25, 0.5, 0.75])) should evaluate as true.
         self.assertTrue(torch.equal(sensor.active_state.flatten()[:3], torch.tensor([0.25, 0.5, 0.75])))
 
     def test_actor_ingest_raw_values_keeps_only_extreme_values(self):
@@ -35,6 +36,7 @@ class NodeRolesTest(unittest.TestCase):
 
         actor.ingest_raw_values(torch.tensor([0.1, 0.9, -0.95, 0.2]))
 
+        # This is what I expect to happen, torch.equal(actor.active_state.flatten()[:2], torch.tensor([0.9, -0.95])) should evaluate as true.
         self.assertTrue(torch.equal(actor.active_state.flatten()[:2], torch.tensor([0.9, -0.95])))
 
 
