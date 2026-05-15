@@ -1,6 +1,6 @@
 """Continuous JSON persistence for raw sensor readings.
 
-This file provides the long-running collector that writes sensor samples to a readable JSON document. It sits after raw collection and model grouping, so it coordinates readers, projectors, model filters, and disk persistence. The collector records grouped readings, unmodeled readings, raw numeric values, and sample metadata for later inspection. It is intentionally a persistence utility rather than a sensor implementation, which means it accepts injected reader and projector callables. The default command-line path is useful for local exploratory runs, while tests or demos can construct the class directly with alternate dependencies.
+This file provides the long-running collector that writes sensor samples to readable JSON documents. It sits after raw collection and model grouping, so it coordinates readers, projectors, model filters, and disk persistence. The collector records grouped readings, unmodeled readings, raw numeric values, and sample metadata for later inspection. It is intentionally a persistence utility rather than a sensor implementation, which means it accepts injected reader and projector callables. The default command-line path is useful for local exploratory runs, while tests or demos can construct the class directly with alternate dependencies.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from .desktop_sensor_probe import (
 )
 
 
-DEFAULT_POLL_SECONDS = 3.0
+DEFAULT_POLL_SECONDS = 5.0
 SENSOR_RESULTS_DIR = Path("test results") / "sensor_results"
 SENSOR_RESULTS_FILE = SENSOR_RESULTS_DIR / "sensor_readings.json"
 UNMODELED_SENSOR_TYPE = "unmodeled"
@@ -118,10 +118,13 @@ class SensorResultsCollector:
                 unmodeled_readings.append(BaseSensorModel().reading_to_json(reading))
         return unmodeled_readings
 
-    def load_results(self) -> dict[str, object]:
-        """Load an existing sensor-results JSON document or start a new one.
+    def output_path_for_sensor(
+        self,
+        sensor_type: str,
+    ) -> Path:
+        """Return the JSON path used for one modeled sensor type.
 
-        A new document records platform information and the configured model types before samples are appended.
+        The collector writes one file per sensor group, deriving each path from the configured base output file.
         """
 
         safe_sensor_type = re.sub(r"[^a-zA-Z0-9_.-]+", "_", sensor_type).strip("_")
@@ -151,7 +154,11 @@ class SensorResultsCollector:
 
         return json.loads(output_path.read_text(encoding="utf-8"))
 
-    def save_results(self, results: dict[str, object]) -> None:
+    def save_results(
+        self,
+        results: dict[str, object],
+        output_path: Path,
+    ) -> None:
         """Persist the complete sensor-results document as readable JSON.
 
         The method creates the output directory on demand so command-line runs can start from a clean workspace.
@@ -163,16 +170,16 @@ class SensorResultsCollector:
             encoding="utf-8",
         )
 
-    def append_sample(self) -> int:
-        """Collect one sensor sample, append it to disk, and return its index.
+    def append_sensor_sample(
+        self,
+        sensor_type: str,
+        readings_json: List[dict[str, object]],
+        collected_at_utc: str,
+    ) -> int:
+        """Append one sensor group's readings to that group's JSON file."""
 
-        This is the unit of work used by the continuous loop, combining reading, grouping, projection, validation, and saving.
-        """
-
-        readings = self.reader()
-        sensor_groups = self.sensor_groups_to_json(readings)
-        unmodeled_readings = self.unmodeled_readings_to_json(readings)
-        results = self.load_results()
+        output_path = self.output_path_for_sensor(sensor_type)
+        results = self.load_results(sensor_type, output_path)
         samples = results.setdefault("samples", [])
         if not isinstance(samples, list):
             raise ValueError(
@@ -194,6 +201,37 @@ class SensorResultsCollector:
         )
         self.save_results(results, output_path)
         return sample_index
+
+    def print_sample_walkthrough(
+        self,
+        readings: List[SensorReading],
+        sample_indexes: dict[str, int],
+    ) -> None:
+        """Print a readable explanation of the current sensor pass."""
+
+        if not readings:
+            print("sensor pass: no desktop readings available from this runtime")
+            return
+
+        raw_values = self.projector(readings)
+        print(f"sensor pass: collected {len(readings)} raw readings")
+        print(f"projected raw numeric stream: {raw_values}")
+
+        grouped_sensor_types = sorted(sample_indexes)
+        if grouped_sensor_types:
+            print(f"modeled sensor groups saved: {', '.join(grouped_sensor_types)}")
+        else:
+            print("modeled sensor groups saved: none")
+
+        for reading in readings:
+            suffix = f" {reading.unit}" if reading.unit else ""
+            source = f" source={reading.source}" if reading.source else ""
+            method = (
+                f" method={reading.collection_method}"
+                if reading.collection_method
+                else ""
+            )
+            print(f"  - {reading.name}: {reading.value:.4f}{suffix}{source}{method}")
 
     def append_sample(self) -> dict[str, int]:
         """Collect one sample and append each sensor type to its own file."""
@@ -221,6 +259,7 @@ class SensorResultsCollector:
                 collected_at_utc,
             )
 
+        self.print_sample_walkthrough(readings, sample_indexes)
         return sample_indexes
 
     def run_forever(self) -> None:
@@ -231,6 +270,7 @@ class SensorResultsCollector:
 
         print(f"collecting sensor readings every {self.delay_seconds} seconds")
         print(f"writing sensor results beside {self.output_file}")
+        print("stop the loop from your IDE or terminal when you are done")
 
         while True:
             sample_indexes = self.append_sample()
