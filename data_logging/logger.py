@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 
+__all__ = ["DataLogger", "RawSample", "utc_now_iso"]
+
+
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -94,7 +97,11 @@ class DataLogger:
         )
         self.connection.commit()
 
-    def create_run(self, label: str = "spatial-memory-viability", metadata: Mapping[str, Any] | None = None) -> int:
+    def create_run(
+        self,
+        label: str = "spatial-memory-viability",
+        metadata: Mapping[str, Any] | None = None,
+    ) -> int:
         cursor = self.connection.execute(
             "insert into runs (started_at, label, metadata_json) values (?, ?, ?)",
             (utc_now_iso(), label, json.dumps(dict(metadata or {}), sort_keys=True)),
@@ -102,7 +109,12 @@ class DataLogger:
         self.connection.commit()
         return int(cursor.lastrowid)
 
-    def log_raw_samples(self, run_id: int, step: int, samples: Iterable[RawSample]) -> None:
+    def log_raw_samples(
+        self,
+        run_id: int,
+        step: int,
+        samples: Iterable[RawSample],
+    ) -> None:
         captured_at = utc_now_iso()
         rows = [
             (run_id, step, sample.source, index, float(sample.value), sample.unit, captured_at)
@@ -120,7 +132,13 @@ class DataLogger:
         )
         self.connection.commit()
 
-    def log_node_message(self, run_id: int, step: int, message: Mapping[str, Any], payload: Mapping[str, Any] | None = None) -> None:
+    def log_node_message(
+        self,
+        run_id: int,
+        step: int,
+        message: Mapping[str, Any],
+        payload: Mapping[str, Any] | None = None,
+    ) -> None:
         self.connection.execute(
             """
             insert into node_messages
@@ -158,7 +176,8 @@ class DataLogger:
         self.connection.execute(
             """
             insert into memory_steps
-                (run_id, step, position_x, position_y, position_z, error, reflex_triggered, write_back, payload_json, captured_at)
+                (run_id, step, position_x, position_y, position_z, error,
+                 reflex_triggered, write_back, payload_json, captured_at)
             values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (

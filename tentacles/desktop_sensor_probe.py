@@ -21,8 +21,13 @@ from sensors.interfaces import SensorReading, collect_readings, readings_to_spat
 from tentacles.tokenizer import SpatialTokenizer
 
 
+__all__ = ["main"]
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Probe desktop counters and map them into one spatial sensor frame.")
+    parser = argparse.ArgumentParser(
+        description="Probe desktop counters and map them into one spatial sensor frame."
+    )
     parser.add_argument("--samples", type=int, default=5, help="number of polling loops to print")
     parser.add_argument("--delay", type=float, default=1.0, help="seconds between polling loops")
     args = parser.parse_args()
@@ -37,7 +42,12 @@ def main() -> None:
             return
 
         values = readings_to_spatial_values(readings)
-        frames = tokenizer.raw_values_to_frames(values, origins=[(0, 0, 0)], min_value=0.0, max_value=max(max(values), 1.0))
+        frames = tokenizer.raw_values_to_frames(
+            values,
+            origins=[(0, 0, 0)],
+            min_value=0.0,
+            max_value=max(max(values), 1.0),
+        )
         frame = frames[0]
         print(f"sample={sample_index} readings={len(readings)} spatial_values={frame.values}")
         for reading in readings:
