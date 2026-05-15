@@ -89,8 +89,9 @@ class ExpectationTextTestResult(unittest.TextTestResult):
         unittest.TestResult.addError(self, test, err)
         if self.showAll:
             self._write_actual_result(
-                actual="the test raised an unexpected error",
+                actual=self._actual_error_summary(err),
                 result="ERROR",
+                details=self._exc_info_to_string(err, test),
             )
         elif self.dots:
             self.stream.write("E")
@@ -100,8 +101,9 @@ class ExpectationTextTestResult(unittest.TextTestResult):
         unittest.TestResult.addFailure(self, test, err)
         if self.showAll:
             self._write_actual_result(
-                actual="an assertion did not match the expected outcome",
+                actual=self._actual_failure_summary(err),
                 result="FAIL",
+                details=self._exc_info_to_string(err, test),
             )
         elif self.dots:
             self.stream.write("F")
@@ -122,8 +124,9 @@ class ExpectationTextTestResult(unittest.TextTestResult):
         unittest.TestResult.addExpectedFailure(self, test, err)
         if self.showAll:
             self._write_actual_result(
-                actual="the test failed in the expected way",
+                actual=self._actual_failure_summary(err),
                 result="EXPECTED FAILURE",
+                details=self._exc_info_to_string(err, test),
             )
         elif self.dots:
             self.stream.write("x")
@@ -140,12 +143,33 @@ class ExpectationTextTestResult(unittest.TextTestResult):
             self.stream.write("u")
             self.stream.flush()
 
+    @staticmethod
+    def _exception_summary(err) -> str:
+        exception_type, exception, _ = err
+        if exception is None:
+            return exception_type.__name__
+
+        exception_message = str(exception)
+        if exception_message:
+            return f"{exception_type.__name__}: {exception_message}"
+        return exception_type.__name__
+
+    def _actual_error_summary(self, err) -> str:
+        return f"the test raised {self._exception_summary(err)}"
+
+    def _actual_failure_summary(self, err) -> str:
+        return f"the assertion failed with {self._exception_summary(err)}"
+
     def _write_actual_result(
         self,
         actual: str,
         result: str,
+        details: str | None = None,
     ) -> None:
         self.stream.writeln(f"What actually happened, {actual}.")
+        if details:
+            self.stream.writeln("Actual details:")
+            self.stream.writeln(details.rstrip())
         self.stream.writeln(f"This is what the test result was, {result}.")
         self.stream.writeln()
         self.stream.flush()
