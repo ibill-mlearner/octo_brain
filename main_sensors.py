@@ -6,8 +6,8 @@ that instantiates every concrete sensor class and routes access through the
 interface layer. Comments show how each public method or helper is expected to
 behave.
 
-Run from the repository root to continuously append raw sensor readings to the
-JSON file under ``test results/sensor_results``:
+Run from the repository root to continuously append raw sensor readings to
+per-sensor JSON files under ``test results/sensor_results``:
 
     python main_sensors.py
 """
