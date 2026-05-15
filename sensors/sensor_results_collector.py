@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import platform
+import re
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -26,11 +27,12 @@ from .desktop_sensor_probe import (
 DEFAULT_POLL_SECONDS = 3.0
 SENSOR_RESULTS_DIR = Path("test results") / "sensor_results"
 SENSOR_RESULTS_FILE = SENSOR_RESULTS_DIR / "sensor_readings.json"
+UNMODELED_SENSOR_TYPE = "unmodeled"
 
 
 @dataclass
 class SensorResultsCollector:
-    """Collect raw sensor readings and append them to a JSON results file."""
+    """Collect raw sensor readings and append them to per-sensor JSON files."""
 
     output_file: Path = SENSOR_RESULTS_FILE
     delay_seconds: float = DEFAULT_POLL_SECONDS
@@ -56,7 +58,7 @@ class SensorResultsCollector:
         """
 
         parser = argparse.ArgumentParser(
-            description="Continuously save raw sensor readings as JSON."
+            description="Continuously save raw sensor readings as per-sensor JSON."
         )
         parser.add_argument(
             "--delay",
@@ -68,7 +70,11 @@ class SensorResultsCollector:
             "--output",
             type=Path,
             default=SENSOR_RESULTS_FILE,
-            help="JSON file that accumulates sensor samples",
+            help=(
+                "base JSON path used to derive per-sensor output files; "
+                "for example sensor_readings.json becomes "
+                "sensor_readings_cpu.json"
+            ),
         )
         args = parser.parse_args()
 
@@ -118,17 +124,32 @@ class SensorResultsCollector:
         A new document records platform information and the configured model types before samples are appended.
         """
 
-        if not self.output_file.exists():
+        safe_sensor_type = re.sub(r"[^a-zA-Z0-9_.-]+", "_", sensor_type).strip("_")
+        safe_sensor_type = safe_sensor_type or UNMODELED_SENSOR_TYPE
+
+        if self.output_file.suffix:
+            return self.output_file.with_name(
+                f"{self.output_file.stem}_{safe_sensor_type}{self.output_file.suffix}"
+            )
+
+        return self.output_file / f"{SENSOR_RESULTS_FILE.stem}_{safe_sensor_type}.json"
+
+    def load_results(
+        self,
+        sensor_type: str,
+        output_path: Path | None = None,
+    ) -> dict[str, object]:
+        """Load one sensor-results JSON document or start a new one."""
+
+        output_path = output_path or self.output_path_for_sensor(sensor_type)
+        if not output_path.exists():
             return {
                 "platform": platform.platform(),
-                "sensor_model_types": [
-                    sensor_model.sensor_type
-                    for sensor_model in self.sensor_models
-                ],
+                "sensor_type": sensor_type,
                 "samples": [],
             }
 
-        return json.loads(self.output_file.read_text(encoding="utf-8"))
+        return json.loads(output_path.read_text(encoding="utf-8"))
 
     def save_results(self, results: dict[str, object]) -> None:
         """Persist the complete sensor-results document as readable JSON.
@@ -136,8 +157,8 @@ class SensorResultsCollector:
         The method creates the output directory on demand so command-line runs can start from a clean workspace.
         """
 
-        self.output_file.parent.mkdir(parents=True, exist_ok=True)
-        self.output_file.write_text(
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
             json.dumps(results, indent=2),
             encoding="utf-8",
         )
@@ -156,21 +177,51 @@ class SensorResultsCollector:
         if not isinstance(samples, list):
             raise ValueError(
                 "sensor results file has a non-list samples field: "
-                f"{self.output_file}"
+                f"{output_path}"
             )
 
         sample_index = len(samples)
         samples.append(
             {
                 "sample_index": sample_index,
-                "collected_at_utc": datetime.now(timezone.utc).isoformat(),
-                "sensor_groups": sensor_groups,
-                "unmodeled_readings": unmodeled_readings,
-                "raw_values": self.projector(readings),
+                "collected_at_utc": collected_at_utc,
+                "readings": readings_json,
+                "raw_values": [
+                    float(reading["value"])
+                    for reading in readings_json
+                ],
             }
         )
-        self.save_results(results)
+        self.save_results(results, output_path)
         return sample_index
+
+    def append_sample(self) -> dict[str, int]:
+        """Collect one sample and append each sensor type to its own file."""
+
+        readings = self.reader()
+        collected_at_utc = datetime.now(timezone.utc).isoformat()
+        sample_indexes = {}
+
+        for sensor_group in self.sensor_groups_to_json(readings):
+            sensor_type = str(sensor_group["sensor_type"])
+            group_readings = sensor_group["readings"]
+            if not isinstance(group_readings, list):
+                raise ValueError(f"sensor group has non-list readings: {sensor_type}")
+            sample_indexes[sensor_type] = self.append_sensor_sample(
+                sensor_type,
+                group_readings,
+                collected_at_utc,
+            )
+
+        unmodeled_readings = self.unmodeled_readings_to_json(readings)
+        if unmodeled_readings:
+            sample_indexes[UNMODELED_SENSOR_TYPE] = self.append_sensor_sample(
+                UNMODELED_SENSOR_TYPE,
+                unmodeled_readings,
+                collected_at_utc,
+            )
+
+        return sample_indexes
 
     def run_forever(self) -> None:
         """Continuously append samples at the configured interval.
@@ -179,9 +230,16 @@ class SensorResultsCollector:
         """
 
         print(f"collecting sensor readings every {self.delay_seconds} seconds")
-        print(f"writing sensor results to {self.output_file}")
+        print(f"writing sensor results beside {self.output_file}")
 
         while True:
-            sample_index = self.append_sample()
-            print(f"saved sensor sample {sample_index} to {self.output_file}")
+            sample_indexes = self.append_sample()
+            if sample_indexes:
+                summary = ", ".join(
+                    f"{sensor_type}={sample_index}"
+                    for sensor_type, sample_index in sorted(sample_indexes.items())
+                )
+                print(f"saved sensor samples: {summary}")
+            else:
+                print("no sensor readings collected")
             time.sleep(self.delay_seconds)
