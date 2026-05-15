@@ -1,6 +1,6 @@
 """Sensor models grouped by the raw readings collected so far."""
 
-from .base_sensor import BaseSensorModel
+from .base_sensor import BaseSensorModel, SensorReading
 from .battery_sensor import BatterySensorModel
 from .cpu_sensor import CpuSensorModel
 from .disk_sensor import DiskSensorModel
@@ -25,6 +25,7 @@ DEFAULT_SENSOR_MODELS = (
 
 __all__ = [
     "BaseSensorModel",
+    "SensorReading",
     "BatterySensorModel",
     "CpuSensorModel",
     "DEFAULT_SENSOR_MODELS",

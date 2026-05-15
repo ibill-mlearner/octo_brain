@@ -1,11 +1,21 @@
-"""Base model for grouping raw sensor readings by sensor type."""
+"""Base data models for grouping raw sensor readings by sensor type."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import ClassVar, Iterable, List, Tuple
+from typing import Any, ClassVar, Iterable, List, Tuple
 
-from sensors.desktop_sensor_probe import SensorReading
+
+@dataclass(frozen=True)
+class SensorReading:
+    """Raw sensor reading in the shared model shape used by sensor logic."""
+
+    name: str
+    value: float
+    unit: str = ""
+    source: str = ""
+    raw_data: Any | None = None
+    collection_method: str = ""
 
 
 @dataclass(frozen=True)
@@ -17,7 +27,10 @@ class BaseSensorModel:
     reading_prefixes: ClassVar[Tuple[str, ...]] = ()
     default_unit: ClassVar[str] = ""
 
-    def matches_reading(self, reading: SensorReading) -> bool:
+    def matches_reading(
+        self,
+        reading: SensorReading,
+    ) -> bool:
         """Return whether a reading belongs to this sensor type."""
 
         if reading.name in self.reading_names:
@@ -54,13 +67,19 @@ class BaseSensorModel:
             return None
         return values[-1]
 
-    def reading_to_json(self, reading: SensorReading) -> dict[str, float | str]:
+    def reading_to_json(
+        self,
+        reading: SensorReading,
+    ) -> dict[str, float | str]:
         """Return one reading in a JSON-friendly shape."""
 
         return {
             "name": reading.name,
             "value": reading.value,
             "unit": reading.unit,
+            "source": reading.source,
+            "collection_method": reading.collection_method,
+            "raw_data": repr(reading.raw_data),
         }
 
     def to_json(
