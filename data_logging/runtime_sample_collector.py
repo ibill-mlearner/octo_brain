@@ -1,4 +1,4 @@
-"""Runtime sample collection for real data-logging runs."""
+"""Runtime sensor sample collection for data-logging runs."""
 
 from __future__ import annotations
 
@@ -11,10 +11,10 @@ from .logger import RawSample
 
 
 class RuntimeSampleCollector:
-    """Collect live runtime values as raw logger samples."""
+    """Collect live runtime sensor values as raw logger samples."""
 
-    def collect(self, step: int) -> list[RawSample]:
-        """Collect live machine/runtime values without other project modules."""
+    def collect(self, _step: int) -> list[RawSample]:
+        """Collect live machine sensor values without other project modules."""
         disk_usage = shutil.disk_usage(Path.cwd())
         perf_counter = time.perf_counter()
         process_time = time.process_time()
@@ -26,7 +26,6 @@ class RuntimeSampleCollector:
             RawSample("disk.cwd.total", float(disk_usage.total), "bytes"),
             RawSample("disk.cwd.used", float(disk_usage.used), "bytes"),
             RawSample("disk.cwd.free", float(disk_usage.free), "bytes"),
-            RawSample("database.step", float(step), "index"),
         ]
 
         if hasattr(os, "getloadavg"):
