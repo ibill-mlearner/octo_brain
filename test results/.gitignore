@@ -1,3 +1,5 @@
 *
 !.gitignore
 !.gitkeep
+!sensor_results/
+!sensor_results/.gitkeep

@@ -41,3 +41,11 @@ When adding or expanding methods:
 - Favor this style for new code even if nearby older code has not been refactored yet.
 
 This mirrors the project owner's preferred editing flow: open the definition, place each input on its own line, and let the editor maintain the indentation so the signature reads cleanly as a structured list.
+
+## Runnable scripts and top-level walkthroughs
+
+Keep runnable files at the repository root, such as `main_*.py`, thin and easy to inspect.
+They should not grow new helper functions, classes, or reusable business logic. Put
+new behavior in the appropriate package module, preferably behind a small class
+when state or repeated work is involved, and let the runnable file import and call
+that package API.
