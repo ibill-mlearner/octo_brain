@@ -7,7 +7,9 @@ from tentacles.spatial_memory_system import SpatialMemorySystem
 
 
 def main() -> None:
-    """Wire the spatial memory core into modular node roles and run a demo loop."""
+    """Run a small sensor-first walkthrough before debugging downstream roles."""
+    torch.manual_seed(0)
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     core = SpatialMemorySystem(
         channels=8,
@@ -18,34 +20,35 @@ def main() -> None:
 
     roles = NodeRoleServer(core)
     sensor = roles.connect("sensor", node_id="sensor-1")
-    reflex = roles.connect("reflex", node_id="reflex-1")
-    decision = roles.connect("decision", node_id="decision-1")
-    actor = roles.connect("actor", node_id="actor-1")
 
-    for step in range(500):
-        sensor.sync_from(actor)
-        decision.sync_from(actor)
+    print("Sensor-first walkthrough: 10 steps")
+    print("Each step shows the raw roll-like value sent into the sensor node, then the sensor outcome.")
+
+    for step in range(1, 11):
+        roll_input = (step - 5.5) / 5.0
+        sensor_frame = torch.zeros_like(sensor.active_state)
+        sensor_frame[:, 0] = roll_input
+        sensor_frame[:, 1] = -roll_input
+
+        sensor.ingest_raw_values(sensor_frame)
         patch, prediction = sensor.sense_and_predict()
         error = float((prediction - patch).pow(2).mean().detach().item())
 
-        trigger, urgency = reflex.check(error)
-        action = decision.decide(error)
-        if trigger:
-            action = (
-                -actor.velocity
-                if torch.norm(actor.velocity) > 0
-                else torch.zeros(3, device=actor.position.device)
-            )
+        sensor_roll_state = float(sensor.active_state[:, 0].mean().detach().item())
+        sensor_counter_state = float(sensor.active_state[:, 1].mean().detach().item())
+        patch_mean = float(patch.mean().detach().item())
+        prediction_mean = float(prediction.mean().detach().item())
 
-        feedback = actor.act(action)
-        actor.active_state, _, _ = core.step(actor.active_state, actor.position, write_back=True)
-
-        if step % 50 == 0 or trigger:
-            print(
-                f"step={step:03d} role=sensor error={error:.5f} "
-                f"role=reflex urgency={urgency:.3f} trigger={trigger} "
-                f"role=actor feedback={feedback:.3f}"
-            )
+        print(
+            f"step={step:02d} "
+            f"sensor_input.roll={roll_input:+.3f} "
+            f"sensor_input.counter_roll={-roll_input:+.3f} | "
+            f"sensor_outcome.active_roll={sensor_roll_state:+.3f} "
+            f"sensor_outcome.active_counter_roll={sensor_counter_state:+.3f} "
+            f"sensor_outcome.patch_mean={patch_mean:+.5f} "
+            f"sensor_outcome.prediction_mean={prediction_mean:+.5f} "
+            f"sensor_outcome.prediction_error={error:.5f}"
+        )
 
 
 if __name__ == "__main__":
