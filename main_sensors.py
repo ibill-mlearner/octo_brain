@@ -1,5 +1,5 @@
 """
-Readable walkthrough for the ``sensors`` module.
+Top-level runnable walkthrough for the ``sensors`` module.
 
 This file is intentionally not a unit test. It is a runnable/readable reference
 that instantiates every concrete sensor class and routes access through the
@@ -8,14 +8,14 @@ behave.
 
 Run from the repository root if you want to see the concrete demo values:
 
-    python -m sensors.sensor_module_walkthrough
+    python main_sensors.py
 """
 
 from __future__ import annotations
 
 from pprint import pprint
 
-from .interfaces import (
+from sensors.interfaces import (
     DefaultSensorReader,
     FallbackSensorReader,
     RawValueProjector,
@@ -168,7 +168,13 @@ def main() -> None:
     print("windows_demo_readings sample:", windows_demo_readings[:3])
     print("collected_demo_readings sample:", collected_demo_readings[:3])
     print("scanner max_origin:", max_origin)
-    print("scanner clamped/moved/absolute/followed:", clamped_position, moved_position, absolute_position, followed_position)
+    print(
+        "scanner clamped/moved/absolute/followed:",
+        clamped_position,
+        moved_position,
+        absolute_position,
+        followed_position,
+    )
     print("scanner path:", path)
     print("raster first five:", raster_path[:5])
     print("spatial placement:", "see tentacles/tokenizer.py")

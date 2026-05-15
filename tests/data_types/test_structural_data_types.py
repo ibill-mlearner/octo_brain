@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 sys.path.insert(0, str(ROOT))
 
-from data_logger import DataLogger, RawSample
+from data_logging import DataLogger, RawSample
 from node_roles import NodeConfig
 from tentacles.spatial_memory_system import LocalUpdateNet, SpatialMemorySystem
 from tentacles.scanner_environment import ScannerConfig, ScannerEnvironment

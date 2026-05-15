@@ -5,7 +5,7 @@ Python usually represents Java/C++-style interfaces with ``typing.Protocol``:
 callers type against the method shape they need, while concrete classes can live
 in smaller implementation files. External code should import sensor classes,
 helpers, and protocols from this file instead of reaching into
-``tentacles.scanner_environment`` or ``desktop_sensor_probe.py`` directly.
+``tentacles.scanner_environment`` or ``sensors.desktop_sensor_probe`` directly.
 """
 
 from __future__ import annotations

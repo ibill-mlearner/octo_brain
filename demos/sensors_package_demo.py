@@ -1,11 +1,10 @@
 """
-Root-level demo for the standalone sensors package.
+Demo for the standalone sensors package.
 
 This is intentionally a small package smoke demo, not a unit test. It imports
-through the public interface layer and runs the concrete sensors package pieces
-from the repository root:
+through the public interface layer and runs the concrete sensors package pieces:
 
-    python package_demo.py
+    python -m demos.sensors_package_demo
 """
 
 from __future__ import annotations
@@ -39,7 +38,11 @@ def main() -> None:
     pprint(raw_values[:5])
 
     scanner: ScannerNavigator = ScannerEnvironment(
-        config=ScannerConfig(field_size=(20, 20, 10), window_size=(10, 10, 5), stride=(10, 10, 5))
+        config=ScannerConfig(
+            field_size=(20, 20, 10),
+            window_size=(10, 10, 5),
+            stride=(10, 10, 5),
+        )
     )
     scan_origins = scanner.raster_scan(serpentine=True)
     print("first scanner origins:")
