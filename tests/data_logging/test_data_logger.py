@@ -42,9 +42,13 @@ class DataLoggerTest(unittest.TestCase):
                     write_back=True,
                 )
 
+                # This is what I expect to happen, logger.count_rows("runs") should equal 1.
                 self.assertEqual(logger.count_rows("runs"), 1)
+                # This is what I expect to happen, logger.count_rows("raw_sensor_samples") should equal 2.
                 self.assertEqual(logger.count_rows("raw_sensor_samples"), 2)
+                # This is what I expect to happen, logger.count_rows("node_messages") should equal 1.
                 self.assertEqual(logger.count_rows("node_messages"), 1)
+                # This is what I expect to happen, logger.count_rows("memory_steps") should equal 1.
                 self.assertEqual(logger.count_rows("memory_steps"), 1)
 
     def test_memory_step_requires_xyz_position(self):
@@ -53,6 +57,7 @@ class DataLoggerTest(unittest.TestCase):
             with DataLogger(db_path) as logger:
                 run_id = logger.create_run("unit-test")
 
+                # This is what I expect to happen, the next operation should raise ValueError.
                 with self.assertRaises(ValueError):
                     logger.log_memory_step(run_id, step=0, position=(1, 2))
 

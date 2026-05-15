@@ -20,6 +20,7 @@ class SpatialMemorySystemTest(unittest.TestCase):
 
         clamped = memory._clamp_position(position)
 
+        # This is what I expect to happen, torch.equal(clamped, torch.tensor([0.0, 50.0, 90.0])) should evaluate as true.
         self.assertTrue(torch.equal(clamped, torch.tensor([0.0, 50.0, 90.0])))
 
     def test_clamp_position_preserves_position_dtype(self):
@@ -30,6 +31,7 @@ class SpatialMemorySystemTest(unittest.TestCase):
 
         clamped = memory._clamp_position(position)
 
+        # This is what I expect to happen, clamped.dtype should equal torch.float64.
         self.assertEqual(clamped.dtype, torch.float64)
 
 
