@@ -10,7 +10,7 @@ from typing import Any, Iterable, Mapping, Sequence
 class DataLoggingArgumentParser:
     """Build fresh argument parsers for data-logging scripts."""
 
-    default_description = "Write real runtime samples through the data_logging package."
+    default_description = "Write raw sensor samples through the data_logging package."
 
     def parse_args(
         self,
@@ -52,7 +52,7 @@ class DataLoggingArgumentParser:
                 "options": {
                     "type": int,
                     "default": default_steps,
-                    "help": f"Number of real-data logging steps to write. Default: {default_steps}",
+                    "help": f"Number of raw-sensor logging steps to write. Default: {default_steps}",
                 },
             },
         )

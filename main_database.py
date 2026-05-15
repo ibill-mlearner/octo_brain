@@ -1,4 +1,4 @@
-"""Real-data entrypoint for exercising the data logging package."""
+"""Raw-sensor entrypoint for exercising the data logging package."""
 
 from __future__ import annotations
 
