@@ -12,7 +12,15 @@ from __future__ import annotations
 
 from typing import Iterable, List, Protocol, runtime_checkable
 
-from .desktop_sensor_probe import SensorReading, collect_readings, fallback_readings, psutil_readings, readings_to_spatial_values, windows_readings
+from .desktop_sensor_probe import (
+    SensorReading,
+    collect_readings,
+    fallback_readings,
+    psutil_readings,
+    readings_to_spatial_values,
+    windows_readings,
+)
+from .sensor_results_collector import SensorResultsCollector
 from tentacles.scanner_environment import Coordinate, ScannerConfig, ScannerEnvironment
 from tentacles.tokenizer import ScanFrame, SensorFrame, SpatialTokenizer
 
@@ -99,6 +107,7 @@ __all__ = [
     "SensorFrame",
     "SensorReader",
     "SensorReading",
+    "SensorResultsCollector",
     "SensorValueProjector",
     "SpatialTokenizer",
     "WindowsSensorReader",

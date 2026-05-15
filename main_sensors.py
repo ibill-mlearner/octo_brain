@@ -1,19 +1,18 @@
 """
-Top-level runnable walkthrough for the ``sensors`` module.
+Top-level runnable walkthrough and collector for the ``sensors`` module.
 
 This file is intentionally not a unit test. It is a runnable/readable reference
 that instantiates every concrete sensor class and routes access through the
 interface layer. Comments show how each public method or helper is expected to
 behave.
 
-Run from the repository root if you want to see the concrete demo values:
+Run from the repository root to continuously append raw sensor readings to the
+JSON file under ``test results/sensor_results``:
 
     python main_sensors.py
 """
 
 from __future__ import annotations
-
-from pprint import pprint
 
 from sensors.interfaces import (
     DefaultSensorReader,
@@ -24,6 +23,7 @@ from sensors.interfaces import (
     ScannerNavigator,
     SensorReader,
     SensorReading,
+    SensorResultsCollector,
     SensorValueProjector,
     WindowsSensorReader,
 )
@@ -159,25 +159,9 @@ raster_path = scanner.raster_scan(serpentine=True)
 
 
 def main() -> None:
-    """Print the walkthrough's concrete values without asserting anything."""
+    """Start the imported sensor-results collector."""
 
-    print("SensorReading values:")
-    pprint([cpu_reading, memory_reading])
-    print("raw_values:", raw_values)
-    print("fallback_demo_readings sample:", fallback_demo_readings[:3])
-    print("windows_demo_readings sample:", windows_demo_readings[:3])
-    print("collected_demo_readings sample:", collected_demo_readings[:3])
-    print("scanner max_origin:", max_origin)
-    print(
-        "scanner clamped/moved/absolute/followed:",
-        clamped_position,
-        moved_position,
-        absolute_position,
-        followed_position,
-    )
-    print("scanner path:", path)
-    print("raster first five:", raster_path[:5])
-    print("spatial placement:", "see tentacles/tokenizer.py")
+    SensorResultsCollector.from_command_line().run_forever()
 
 
 if __name__ == "__main__":
