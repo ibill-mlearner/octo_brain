@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .base_event import BaseEvent
+from ..base_event import BaseEvent
 
 
 @dataclass(frozen=True, init=False)
