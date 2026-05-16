@@ -5,9 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Tuple
 
+from .active_state_shape import ActiveStateShape
+
 Vector3 = Tuple[float, float, float]
 WindowSize = Tuple[int, int, int]
-ActiveStateShape = Tuple[int, int, int, int, int]
 
 
 @dataclass(frozen=True)
@@ -27,12 +28,22 @@ class BaseNodeModel:
 
     @property
     def active_state_shape(self) -> ActiveStateShape:
-        """Return the node-local active state shape."""
+        """Return named dimensions for the node-local active state.
 
-        return (
-            1,
-            self.channels,
-            *self.window_size,
+        This mirrors the runtime tensor created in node_roles/base_node.py:
+        torch.zeros(1, config.channels, *config.window_size, device=self.device).
+        The shape is derived from channels and window_size rather than loaded
+        as independent configuration.
+        """
+
+        window_x, window_y, window_z = self.window_size
+
+        return ActiveStateShape(
+            batch_size=1,
+            channels=self.channels,
+            window_x=window_x,
+            window_y=window_y,
+            window_z=window_z,
         )
 
     def values(self) -> list[float]:
@@ -59,7 +70,7 @@ class BaseNodeModel:
             "learning_rate": self.learning_rate,
             "position": list(self.position),
             "velocity": list(self.velocity),
-            "active_state_shape": list(self.active_state_shape),
+            "active_state_shape": self.active_state_shape.to_json(),
             "values": self.values(),
         }
 

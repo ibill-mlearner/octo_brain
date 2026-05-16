@@ -1,5 +1,6 @@
 """Node models for structured node state snapshots."""
 
+from .active_state_shape import ActiveStateShape
 from .actor_node import ActorNodeModel
 from .base_node import BaseNodeModel
 from .decision_node import DecisionNodeModel
@@ -14,6 +15,7 @@ DEFAULT_NODE_MODELS = (
 )
 
 __all__ = [
+    "ActiveStateShape",
     "ActorNodeModel",
     "BaseNodeModel",
     "DecisionNodeModel",
