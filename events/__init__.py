@@ -10,6 +10,14 @@ from .kernel import (
     KernelStepScheduler,
     build_default_kernel_event_system,
 )
+from .kernel import KernelStepWorker, KernelTrainingObserver
+from .kernel import (
+    KernelMovementModel,
+    KernelStepSchedule,
+    KernelStepScheduler,
+    publish_kernel_step_requests,
+)
+from .kernel import KernelEventWorker
 from .sensors import (
     SensorEventSystem,
     SensorPoller,
@@ -22,6 +30,13 @@ __all__ = [
     "DEFAULT_KERNEL_EVENT_MAX_QUEUE_SIZE",
     "KernelEventSystem",
     "KernelStepScheduler",
+    "KernelStepWorker",
+    "KernelTrainingObserver",
+    "KernelMovementModel",
+    "KernelStepSchedule",
+    "KernelStepScheduler",
+    "publish_kernel_step_requests",
+    "KernelEventWorker",
     "SensorEventSystem",
     "SensorPoller",
     "SensorReader",
