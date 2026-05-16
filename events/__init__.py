@@ -4,6 +4,7 @@ This package owns the general event queue pieces that are not tied to any one ev
 """
 
 from .async_event_queue import AsyncEventQueue
+from .kernel import KernelEventWorker
 from .sensors import (
     SensorEventSystem,
     SensorPoller,
@@ -13,6 +14,7 @@ from .sensors import (
 
 __all__ = [
     "AsyncEventQueue",
+    "KernelEventWorker",
     "SensorEventSystem",
     "SensorPoller",
     "SensorReader",
