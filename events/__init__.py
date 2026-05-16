@@ -5,6 +5,13 @@ This package owns the general event queue pieces that are not tied to any one ev
 
 from .async_event_queue import AsyncEventQueue
 from .kernel import KernelStepWorker, KernelTrainingObserver
+from .kernel import (
+    KernelMovementModel,
+    KernelStepSchedule,
+    KernelStepScheduler,
+    publish_kernel_step_requests,
+)
+from .kernel import KernelEventWorker
 from .sensors import (
     SensorEventSystem,
     SensorPoller,
@@ -16,6 +23,11 @@ __all__ = [
     "AsyncEventQueue",
     "KernelStepWorker",
     "KernelTrainingObserver",
+    "KernelMovementModel",
+    "KernelStepSchedule",
+    "KernelStepScheduler",
+    "publish_kernel_step_requests",
+    "KernelEventWorker",
     "SensorEventSystem",
     "SensorPoller",
     "SensorReader",
