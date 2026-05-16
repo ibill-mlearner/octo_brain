@@ -31,6 +31,9 @@ class KernelStepCompletedEvent(BaseEvent):
         error_summary: Any | None = None,
         surprise_summary: Any | None = None,
         tensor_summaries: Mapping[str, Any] | None = None,
+        active_state: Any | None = None,
+        visible_patch: Any | None = None,
+        memory_write: Any | None = None,
     ) -> None:
         """Create a completion event for a single kernel step."""
 
@@ -46,6 +49,37 @@ class KernelStepCompletedEvent(BaseEvent):
                 write_back=write_back,
                 error_summary=error_summary,
                 surprise_summary=surprise_summary,
-                tensor_summaries=tensor_summaries,
+                tensor_summaries=_completion_tensor_summaries(
+                    tensor_summaries=tensor_summaries,
+                    active_state=active_state,
+                    visible_patch=visible_patch,
+                    memory_write=memory_write,
+                ),
             ),
         )
+
+
+def _completion_tensor_summaries(
+    tensor_summaries: Mapping[str, Any] | None,
+    active_state: Any | None,
+    visible_patch: Any | None,
+    memory_write: Any | None,
+) -> dict[str, Any]:
+    """Merge common completion tensors into the compact summary mapping.
+
+    The persistent ``memory_field`` is intentionally not accepted here because
+    queue events should record local step context and writes, not the full field.
+    """
+
+    summaries = dict(tensor_summaries or {})
+
+    if active_state is not None:
+        summaries["active_state"] = active_state
+
+    if visible_patch is not None:
+        summaries["visible_patch"] = visible_patch
+
+    if memory_write is not None:
+        summaries["memory_write"] = memory_write
+
+    return summaries
