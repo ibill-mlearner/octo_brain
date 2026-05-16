@@ -10,7 +10,7 @@ from typing import Any, Iterable
 
 from models.sensors import SensorReading
 
-from .base_event import BaseEvent
+from ..base_event import BaseEvent
 
 
 @dataclass(frozen=True, init=False)
