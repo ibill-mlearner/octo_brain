@@ -33,9 +33,8 @@ class KernelEventSystem:
         self.memory = memory
         self.queue = queue
         self.scheduler = KernelStepScheduler(
-            memory=memory,
-            queue=queue,
+            event_queue=queue,
             source=source,
-            node_id=node_id,
-            kernel_id=kernel_id,
         )
+        self.node_id = node_id
+        self.kernel_id = kernel_id
