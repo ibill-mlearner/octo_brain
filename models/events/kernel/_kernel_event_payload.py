@@ -11,6 +11,8 @@ from collections.abc import Mapping
 from numbers import Number
 from typing import Any
 
+from .tensor_summary import summarize_tensor
+
 
 def build_kernel_step_payload(
     step_index: int,
@@ -67,7 +69,11 @@ def normalize_position(
 def normalize_tensor_summaries(
     tensor_summaries: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
-    """Normalize tensor-like values into compact summaries keyed by name."""
+    """Normalize tensor-like values into compact summaries keyed by name.
+
+    The full persistent memory field is intentionally excluded from queued
+    kernel events; callers should pass local patch or write summaries instead.
+    """
 
     if tensor_summaries is None:
         return {}
@@ -75,54 +81,5 @@ def normalize_tensor_summaries(
     return {
         name: summarize_tensor(tensor)
         for name, tensor in tensor_summaries.items()
+        if name != "memory_field"
     }
-
-
-def summarize_tensor(
-    tensor: Any,
-) -> Any:
-    """Return metadata for tensor-like values without copying full contents."""
-
-    if tensor is None:
-        return None
-
-    if isinstance(tensor, Mapping):
-        return dict(tensor)
-
-    summary: dict[str, Any] = {}
-
-    shape = getattr(tensor, "shape", None)
-    if shape is not None:
-        summary["shape"] = list(shape)
-
-    dtype = getattr(tensor, "dtype", None)
-    if dtype is not None:
-        summary["dtype"] = str(dtype)
-
-    device = getattr(tensor, "device", None)
-    if device is not None:
-        summary["device"] = str(device)
-
-    numel = _safe_numel(tensor)
-    if numel is not None:
-        summary["numel"] = numel
-
-    if not summary:
-        return tensor
-
-    return summary
-
-
-def _safe_numel(
-    tensor: Any,
-) -> int | None:
-    """Return a tensor-like object's element count when cheaply available."""
-
-    numel = getattr(tensor, "numel", None)
-    if numel is None:
-        return None
-
-    if callable(numel):
-        return int(numel())
-
-    return int(numel)

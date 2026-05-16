@@ -24,6 +24,7 @@ __all__ = [
     "DesktopFallbackSensor",
     "DesktopPsutilSensor",
     "DesktopSensor",
+    "DesktopSensorLiveChart",
     "DesktopSensorStation",
     "WindowsDesktopSensor",
     "get_default_desktop_sensor_station",
@@ -33,3 +34,14 @@ __all__ = [
     "readings_to_spatial_values",
     "windows_readings",
 ]
+
+
+def __getattr__(name: str) -> object:
+    """Load optional charting support only when callers ask for it."""
+
+    if name == "DesktopSensorLiveChart":
+        from .charting import DesktopSensorLiveChart
+
+        return DesktopSensorLiveChart
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+

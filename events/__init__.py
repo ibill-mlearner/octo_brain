@@ -10,6 +10,7 @@ from .kernel import (
     KernelStepScheduler,
     publish_kernel_step_requests,
 )
+from .kernel import KernelEventWorker
 from .sensors import (
     SensorEventSystem,
     SensorPoller,
@@ -23,6 +24,7 @@ __all__ = [
     "KernelStepSchedule",
     "KernelStepScheduler",
     "publish_kernel_step_requests",
+    "KernelEventWorker",
     "SensorEventSystem",
     "SensorPoller",
     "SensorReader",
