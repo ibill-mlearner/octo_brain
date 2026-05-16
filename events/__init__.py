@@ -4,6 +4,7 @@ This package owns the general event queue pieces that are not tied to any one ev
 """
 
 from .async_event_queue import AsyncEventQueue
+from .kernel import KernelStepWorker, KernelTrainingObserver
 from .kernel import (
     KernelMovementModel,
     KernelStepSchedule,
@@ -20,6 +21,8 @@ from .sensors import (
 
 __all__ = [
     "AsyncEventQueue",
+    "KernelStepWorker",
+    "KernelTrainingObserver",
     "KernelMovementModel",
     "KernelStepSchedule",
     "KernelStepScheduler",
