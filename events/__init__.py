@@ -4,6 +4,12 @@ This package owns the general event queue pieces that are not tied to any one ev
 """
 
 from .async_event_queue import AsyncEventQueue
+from .kernel import (
+    DEFAULT_KERNEL_EVENT_MAX_QUEUE_SIZE,
+    KernelEventSystem,
+    KernelStepScheduler,
+    build_default_kernel_event_system,
+)
 from .sensors import (
     SensorEventSystem,
     SensorPoller,
@@ -13,8 +19,12 @@ from .sensors import (
 
 __all__ = [
     "AsyncEventQueue",
+    "DEFAULT_KERNEL_EVENT_MAX_QUEUE_SIZE",
+    "KernelEventSystem",
+    "KernelStepScheduler",
     "SensorEventSystem",
     "SensorPoller",
     "SensorReader",
+    "build_default_kernel_event_system",
     "build_default_sensor_event_system",
 ]
